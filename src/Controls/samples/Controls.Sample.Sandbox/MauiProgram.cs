@@ -2,6 +2,7 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
+using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 
 namespace Maui.Controls.Sample
 {
@@ -17,12 +18,13 @@ namespace Maui.Controls.Sample
 				.Build();
 	}
 
-	class App : Application
+	class App : Microsoft.Maui.Controls.Application
 	{
 		protected override Window CreateWindow(IActivationState? activationState)
 		{
 			// To test shell scenarios, change this to true
 			bool useShell = false;
+			On<Microsoft.Maui.Controls.PlatformConfiguration.Android>().UseWindowSoftInputModeAdjust(WindowSoftInputModeAdjust.Resize);
 
 			if (!useShell)
 			{
