@@ -23,6 +23,7 @@ namespace Controls.AppiumTests.Tests.Issues
 			App.SetOrientationLandscape();
 			var text = App.FindElement("WaitForStubControl").GetText();
 			Assert.AreEqual("Horizontal", text);
+			App.SetOrientationPortrait();
 		}
 	}
 }
