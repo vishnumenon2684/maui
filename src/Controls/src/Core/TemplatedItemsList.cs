@@ -15,7 +15,7 @@ namespace Microsoft.Maui.Controls.Internals
 {
 
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public sealed class TemplatedItemsList<TView, [DynamicallyAccessedMembers(BindableProperty.DeclaringTypeMembers)] TItem> : BindableObject, ITemplatedItemsList<TItem>, IList, IDisposable
+	public sealed class TemplatedItemsList<TView, [DynamicallyAccessedMembers(BindableProperty.DeclaringTypeMembers | BindableProperty.ReturnTypeMembers)] TItem> : BindableObject, ITemplatedItemsList<TItem>, IList, IDisposable
 												where TView : BindableObject, IItemsView<TItem>
 												where TItem : BindableObject
 	{
@@ -69,7 +69,7 @@ namespace Microsoft.Maui.Controls.Internals
 			if (source != null)
 				ListProxy = new ListProxy(source, dispatcher: _itemsView.Dispatcher);
 			else
-				ListProxy = new ListProxy(new object[0], dispatcher: _itemsView.Dispatcher);
+				ListProxy = new ListProxy(Array.Empty<object>(), dispatcher: _itemsView.Dispatcher);
 		}
 
 		internal TemplatedItemsList(TemplatedItemsList<TView, TItem> parent, IEnumerable itemSource, TView itemsView, BindableProperty itemTemplateProperty, int windowSize = int.MaxValue)
@@ -91,7 +91,7 @@ namespace Microsoft.Maui.Controls.Internals
 				ListProxy.CollectionChanged += OnProxyCollectionChanged;
 			}
 			else
-				ListProxy = new ListProxy(new object[0], dispatcher: _itemsView.Dispatcher);
+				ListProxy = new ListProxy(Array.Empty<object>(), dispatcher: _itemsView.Dispatcher);
 		}
 
 		event PropertyChangedEventHandler ITemplatedItemsList<TItem>.PropertyChanged
@@ -755,7 +755,12 @@ namespace Microsoft.Maui.Controls.Internals
 				// time for right now.
 				groupProxy.HeaderContent = _itemsView.CreateDefault(ListProxy.ProxiedEnumerable);
 				groupProxy.HeaderContent.BindingContext = groupProxy;
-				groupProxy.HeaderContent.SetBinding(TextCell.TextProperty, "Name");
+				groupProxy.HeaderContent.SetBinding(
+					TextCell.TextProperty,
+					TypedBinding.ForSingleNestingLevel(
+						nameof(TemplatedItemsList<TView, TItem>.Name),
+						getter: static (TemplatedItemsList<TView, TItem> list) => list.Name,
+						setter: static (list, val) => list.Name = val));
 			}
 
 			SetIndex(groupProxy.HeaderContent, index);
@@ -944,7 +949,7 @@ namespace Microsoft.Maui.Controls.Internals
 
 			IEnumerable itemSource = GetItemsViewSource();
 			if (itemSource == null)
-				ListProxy = new ListProxy(new object[0], dispatcher: _itemsView.Dispatcher);
+				ListProxy = new ListProxy(Array.Empty<object>(), dispatcher: _itemsView.Dispatcher);
 			else
 				ListProxy = new ListProxy(itemSource, dispatcher: _itemsView.Dispatcher);
 

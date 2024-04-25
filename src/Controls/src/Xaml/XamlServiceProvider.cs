@@ -11,6 +11,8 @@ namespace Microsoft.Maui.Controls.Xaml.Internals
 	{
 		readonly Dictionary<Type, object> services = new Dictionary<Type, object>();
 
+		static IValueConverterProvider defaultValueConverterProvider = new ValueConverterProvider();
+
 		internal XamlServiceProvider(INode node, HydrationContext context)
 		{
 			if (context != null && node != null && node.Parent != null && context.Values.TryGetValue(node.Parent, out object targetObject))
@@ -26,10 +28,10 @@ namespace Microsoft.Maui.Controls.Xaml.Internals
 			if (node is IXmlLineInfo xmlLineInfo)
 				IXmlLineInfoProvider = new XmlLineInfoProvider(xmlLineInfo);
 
-			IValueConverterProvider = new ValueConverterProvider();
+			IValueConverterProvider = defaultValueConverterProvider;
 		}
 
-		public XamlServiceProvider() => IValueConverterProvider = new ValueConverterProvider();
+		public XamlServiceProvider() => IValueConverterProvider = defaultValueConverterProvider;
 
 		internal IProvideValueTarget IProvideValueTarget
 		{
@@ -107,6 +109,22 @@ namespace Microsoft.Maui.Controls.Xaml.Internals
 			}
 		}
 	}
+
+#nullable enable
+	public class ValueTargetProvider : IProvideValueTarget
+	{
+		private object targetObject;
+		private object targetProperty;
+
+		public ValueTargetProvider(object targetObject, object targetProperty)
+		{
+			this.targetObject = targetObject;
+			this.targetProperty = targetProperty;
+		}
+		object IProvideValueTarget.TargetObject => targetObject;
+		object IProvideValueTarget.TargetProperty => targetProperty;
+	}
+#nullable restore
 
 	public class SimpleValueTargetProvider : IProvideParentValues, IProvideValueTarget, IReferenceProvider
 	{
@@ -199,23 +217,6 @@ namespace Microsoft.Maui.Controls.Xaml.Internals
 
 		Type Resolve(string qualifiedTypeName, IServiceProvider serviceProvider, out XamlParseException exception)
 		{
-			exception = null;
-			var split = qualifiedTypeName.Split(':');
-			if (split.Length > 2)
-				return null;
-
-			string prefix, name;
-			if (split.Length == 2)
-			{
-				prefix = split[0];
-				name = split[1];
-			}
-			else
-			{
-				prefix = "";
-				name = split[0];
-			}
-
 			IXmlLineInfo xmlLineInfo = null;
 			if (serviceProvider != null)
 			{
@@ -223,14 +224,8 @@ namespace Microsoft.Maui.Controls.Xaml.Internals
 					xmlLineInfo = lineInfoProvider.XmlLineInfo;
 			}
 
-			var namespaceuri = namespaceResolver.LookupNamespace(prefix);
-			if (namespaceuri == null)
-			{
-				exception = new XamlParseException($"No xmlns declaration for prefix \"{prefix}\"", xmlLineInfo);
-				return null;
-			}
-
-			return getTypeFromXmlName(new XmlType(namespaceuri, name, null), xmlLineInfo, currentAssembly, out exception);
+			var xmlType = TypeArgumentsParser.ParseSingle(qualifiedTypeName, namespaceResolver, xmlLineInfo);
+			return getTypeFromXmlName(xmlType, xmlLineInfo, currentAssembly, out exception);
 		}
 
 		internal delegate Type GetTypeFromXmlName(XmlType xmlType, IXmlLineInfo xmlInfo, Assembly currentAssembly, out XamlParseException exception);

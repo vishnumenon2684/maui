@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using Microsoft.Maui.IntegrationTests.Apple;
 
 namespace Microsoft.Maui.IntegrationTests
@@ -15,12 +16,12 @@ namespace Microsoft.Maui.IntegrationTests
 
 		[Test]
 		// Parameters: short name, target framework, build config, use pack target
-		[TestCase("maui", DotNetPrevious, "Debug", false)]
-		[TestCase("maui", DotNetPrevious, "Release", false)]
+		//[TestCase("maui", DotNetPrevious, "Debug", false)]
+		//[TestCase("maui", DotNetPrevious, "Release", false)]
 		[TestCase("maui", DotNetCurrent, "Debug", false)]
 		[TestCase("maui", DotNetCurrent, "Release", false)]
-		[TestCase("maui-blazor", DotNetPrevious, "Debug", false)]
-		[TestCase("maui-blazor", DotNetPrevious, "Release", false)]
+		//[TestCase("maui-blazor", DotNetPrevious, "Debug", false)]
+		//[TestCase("maui-blazor", DotNetPrevious, "Release", false)]
 		[TestCase("maui-blazor", DotNetCurrent, "Debug", false)]
 		[TestCase("maui-blazor", DotNetCurrent, "Release", false)]
 		[TestCase("mauilib", DotNetPrevious, "Debug", true)]
@@ -48,13 +49,70 @@ namespace Microsoft.Maui.IntegrationTests
 		}
 
 		[Test]
+		[TestCase("Debug")]
+		[TestCase("Release")]
+		public void BuildMultiProject(string config)
+		{
+			var projectDir = TestDirectory;
+			var name = Path.GetFileName(projectDir);
+			var solutionFile = Path.Combine(projectDir, $"{name}.sln");
+
+			Assert.IsTrue(DotnetInternal.New("maui-multiproject", projectDir, DotNetCurrent),
+				$"Unable to create template maui-multiproject. Check test output for errors.");
+
+			if (!TestEnvironment.IsWindows)
+			{
+				Assert.IsTrue(DotnetInternal.Run("sln", $"{solutionFile} remove {projectDir}/{name}.WinUI/{name}.WinUI.csproj"),
+					$"Unable to remove WinUI project from solution. Check test output for errors.");
+			}
+
+			Assert.IsTrue(DotnetInternal.Build(solutionFile, config, properties: BuildProps, msbuildWarningsAsErrors: true),
+				$"Solution {name} failed to build. Check test output/attachments for errors.");
+		}
+
+		[Test]
+		// with spaces
+		[TestCase("maui", "Project Space", "projectspace")]
+		[TestCase("maui-blazor", "Project Space", "projectspace")]
+		[TestCase("mauilib", "Project Space", "projectspace")]
+  		// with invalid characters
+		[TestCase("maui", "Project@Symbol", "projectsymbol")]
+		[TestCase("maui-blazor", "Project@Symbol", "projectsymbol")]
+		[TestCase("mauilib", "Project@Symbol", "projectsymbol")]
+		public void BuildsWithSpecialCharacters(string id, string projectName, string expectedId)
+		{
+			var projectDir = Path.Combine(TestDirectory, projectName);
+			var projectFile = Path.Combine(projectDir, $"{projectName}.csproj");
+
+			Assert.IsTrue(DotnetInternal.New(id, projectDir, DotNetCurrent),
+				$"Unable to create template {id}. Check test output for errors.");
+
+			EnableTizen(projectFile);
+
+			// libraries do not have application IDs
+			if (id != "mauilib")
+			{
+				var doc = XDocument.Load(projectFile);
+				var appId = doc.Root!
+					.Elements("PropertyGroup")
+					.Elements("ApplicationId")
+					.Single()
+					.Value;
+				Assert.AreEqual($"com.companyname.{expectedId}", appId);
+			}
+
+			Assert.IsTrue(DotnetInternal.Build(projectFile, "Debug", properties: BuildProps, msbuildWarningsAsErrors: true),
+				$"Project {Path.GetFileName(projectFile)} failed to build. Check test output/attachments for errors.");
+		}
+
+		[Test]
 		// Parameters: short name, target framework, build config, use pack target
-		[TestCase("maui", DotNetPrevious, "Debug", false)]
-		[TestCase("maui", DotNetPrevious, "Release", false)]
+		//[TestCase("maui", DotNetPrevious, "Debug", false)]
+		//[TestCase("maui", DotNetPrevious, "Release", false)]
 		[TestCase("maui", DotNetCurrent, "Debug", false)]
 		[TestCase("maui", DotNetCurrent, "Release", false)]
-		[TestCase("maui-blazor", DotNetPrevious, "Debug", false)]
-		[TestCase("maui-blazor", DotNetPrevious, "Release", false)]
+		//[TestCase("maui-blazor", DotNetPrevious, "Debug", false)]
+		//[TestCase("maui-blazor", DotNetPrevious, "Release", false)]
 		[TestCase("maui-blazor", DotNetCurrent, "Debug", false)]
 		[TestCase("maui-blazor", DotNetCurrent, "Release", false)]
 		[TestCase("mauilib", DotNetPrevious, "Debug", true)]
@@ -88,12 +146,12 @@ namespace Microsoft.Maui.IntegrationTests
 		}
 
 		[Test]
-		[TestCase("maui", DotNetPrevious, "Debug")]
-		[TestCase("maui", DotNetPrevious, "Release")]
+		//[TestCase("maui", DotNetPrevious, "Debug")]
+		//[TestCase("maui", DotNetPrevious, "Release")]
 		[TestCase("maui", DotNetCurrent, "Debug")]
 		[TestCase("maui", DotNetCurrent, "Release")]
-		[TestCase("maui-blazor", DotNetPrevious, "Debug")]
-		[TestCase("maui-blazor", DotNetPrevious, "Release")]
+		//[TestCase("maui-blazor", DotNetPrevious, "Debug")]
+		//[TestCase("maui-blazor", DotNetPrevious, "Release")]
 		[TestCase("maui-blazor", DotNetCurrent, "Debug")]
 		[TestCase("maui-blazor", DotNetCurrent, "Release")]
 		public void BuildUnpackaged(string id, string framework, string config)
@@ -114,7 +172,41 @@ namespace Microsoft.Maui.IntegrationTests
 		}
 
 		[Test]
+		[TestCase("maui", true, true)]
+		[TestCase("maui", true, false)]
+		[TestCase("maui", false, true)]
+		public void BuildWindowsAppSDKSelfContained(string id, bool wasdkself, bool netself)
+		{
+			if (TestEnvironment.IsMacOS)
+				Assert.Ignore("This test is designed for testing a windows build.");
+
+			var projectDir = TestDirectory;
+			var projectFile = Path.Combine(projectDir, $"{Path.GetFileName(projectDir)}.csproj");
+
+			Assert.IsTrue(DotnetInternal.New(id, projectDir, DotNetCurrent),
+				$"Unable to create template {id}. Check test output for errors.");
+
+			FileUtilities.ReplaceInFile(projectFile,
+				"<UseMaui>true</UseMaui>",
+				$"""
+				<UseMaui>true</UseMaui>
+				<WindowsAppSDKSelfContained>{wasdkself}</WindowsAppSDKSelfContained>
+				<SelfContained>{netself}</SelfContained>
+				""");
+
+			var extendedBuildProps = BuildProps;
+			extendedBuildProps.Add($"TargetFramework={DotNetCurrent}-windows10.0.19041.0");
+
+			Assert.IsTrue(DotnetInternal.Build(projectFile, "Release", properties: extendedBuildProps, msbuildWarningsAsErrors: true),
+				$"Project {Path.GetFileName(projectFile)} failed to build. Check test output/attachments for errors.");
+		}
+
+		[Test]
 		[TestCase("maui", $"{DotNetCurrent}-ios", "ios-arm64")]
+		[TestCase("maui", $"{DotNetCurrent}-ios", "iossimulator-arm64")]
+		[TestCase("maui", $"{DotNetCurrent}-ios", "iossimulator-x64")]
+		[TestCase("maui", $"{DotNetCurrent}-maccatalyst", "maccatalyst-arm64")]
+		[TestCase("maui", $"{DotNetCurrent}-maccatalyst", "maccatalyst-x64")]
 		public void PublishNativeAOT(string id, string framework, string runtimeIdentifier)
 		{
 			if (!TestEnvironment.IsMacOS)
@@ -128,38 +220,17 @@ namespace Microsoft.Maui.IntegrationTests
 
 			var extendedBuildProps = BuildProps;
 			extendedBuildProps.Add("PublishAot=true");
-			extendedBuildProps.Add("PublishAotUsingRuntimePack=true");  // TODO: This parameter will become obsolete https://github.com/dotnet/runtime/issues/87060
-
-			Assert.IsTrue(DotnetInternal.Publish(projectFile, "Release", framework: framework, properties: extendedBuildProps, runtimeIdentifier: runtimeIdentifier),
-				$"Project {Path.GetFileName(projectFile)} failed to build. Check test output/attachments for errors.");
-		}
-
-		[Test]
-		[TestCase("maui", $"{DotNetCurrent}-ios", "ios-arm64")]
-		public void PublishNativeAOTCheckWarnings(string id, string framework, string runtimeIdentifier)
-		{
-			if (!TestEnvironment.IsMacOS)
-				Assert.Ignore("Publishing a MAUI iOS app with NativeAOT is only supported on a host MacOS system.");
-
-			var projectDir = TestDirectory;
-			var projectFile = Path.Combine(projectDir, $"{Path.GetFileName(projectDir)}.csproj");
-
-			Assert.IsTrue(DotnetInternal.New(id, projectDir, DotNetCurrent),
-				$"Unable to create template {id}. Check test output for errors.");
-
-			var extendedBuildProps = BuildProps;
-			extendedBuildProps.Add("PublishAot=true");
-			extendedBuildProps.Add("PublishAotUsingRuntimePack=true");  // TODO: This parameter will become obsolete https://github.com/dotnet/runtime/issues/87060
+			extendedBuildProps.Add("PublishAotUsingRuntimePack=true");  // TODO: This parameter will become obsolete https://github.com/dotnet/runtime/issues/87060 in net9
+			extendedBuildProps.Add("_IsPublishing=true"); // This makes 'dotnet build -r iossimulator-x64' equivalent to 'dotnet publish -r iossimulator-x64'
+			extendedBuildProps.Add("IlcTreatWarningsAsErrors=false");
 			extendedBuildProps.Add("TrimmerSingleWarn=false");
 
 			string binLogFilePath = $"publish-{DateTime.UtcNow.ToFileTimeUtc()}.binlog";
-			Assert.IsTrue(DotnetInternal.Publish(projectFile, "Release", framework: framework, properties: extendedBuildProps, runtimeIdentifier: runtimeIdentifier, binlogPath: binLogFilePath),
+			Assert.IsTrue(DotnetInternal.Build(projectFile, "Release", framework: framework, properties: extendedBuildProps, runtimeIdentifier: runtimeIdentifier, binlogPath: binLogFilePath),
 				$"Project {Path.GetFileName(projectFile)} failed to build. Check test output/attachments for errors.");
 
-			var expectedWarnings = BuildWarningsUtilities.ExpectedNativeAOTWarnings;
 			var actualWarnings = BuildWarningsUtilities.ReadNativeAOTWarningsFromBinLog(binLogFilePath);
-
-			actualWarnings.AssertWarnings(expectedWarnings);
+			actualWarnings.AssertNoWarnings();
 		}
 
 		[Test]

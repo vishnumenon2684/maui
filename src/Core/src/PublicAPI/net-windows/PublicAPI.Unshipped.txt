@@ -44,6 +44,7 @@ Microsoft.Maui.Platform.MauiWebView.MauiWebView(Microsoft.Maui.Handlers.WebViewH
 Microsoft.Maui.SizeRequest.Equals(Microsoft.Maui.SizeRequest other) -> bool
 Microsoft.Maui.SoftInputExtensions
 override Microsoft.Maui.Handlers.ContentViewHandler.DisconnectHandler(Microsoft.Maui.Platform.ContentPanel! platformView) -> void
+override Microsoft.Maui.Handlers.ImageHandler.ConnectHandler(Microsoft.UI.Xaml.Controls.Image! platformView) -> void
 override Microsoft.Maui.Handlers.MenuFlyoutHandler.DisconnectHandler(Microsoft.UI.Xaml.Controls.MenuFlyout! platformView) -> void
 override Microsoft.Maui.Layouts.FlexBasis.Equals(object? obj) -> bool
 override Microsoft.Maui.Layouts.FlexBasis.GetHashCode() -> int
@@ -67,6 +68,9 @@ static Microsoft.Maui.Handlers.SearchBarHandler.MapIsSpellCheckEnabled(Microsoft
 static Microsoft.Maui.Handlers.SwipeItemMenuItemHandler.MapSourceAsync(Microsoft.Maui.Handlers.ISwipeItemMenuItemHandler! handler, Microsoft.Maui.ISwipeItemMenuItem! image) -> System.Threading.Tasks.Task!
 static Microsoft.Maui.Hosting.MauiHandlersCollectionExtensions.AddHandler<TType>(this Microsoft.Maui.Hosting.IMauiHandlersCollection! handlersCollection, System.Func<System.IServiceProvider!, Microsoft.Maui.IElementHandler!>! handlerImplementationFactory) -> Microsoft.Maui.Hosting.IMauiHandlersCollection!
 static Microsoft.Maui.Hosting.MauiHandlersCollectionExtensions.TryAddHandler<TType>(this Microsoft.Maui.Hosting.IMauiHandlersCollection! handlersCollection, System.Func<System.IServiceProvider!, Microsoft.Maui.IElementHandler!>! handlerImplementationFactory) -> Microsoft.Maui.Hosting.IMauiHandlersCollection!
+static Microsoft.Maui.Keyboard.Date.get -> Microsoft.Maui.Keyboard!
+static Microsoft.Maui.Keyboard.Password.get -> Microsoft.Maui.Keyboard!
+static Microsoft.Maui.Keyboard.Time.get -> Microsoft.Maui.Keyboard!
 static Microsoft.Maui.Layouts.FlexBasis.operator !=(Microsoft.Maui.Layouts.FlexBasis left, Microsoft.Maui.Layouts.FlexBasis right) -> bool
 static Microsoft.Maui.Layouts.FlexBasis.operator ==(Microsoft.Maui.Layouts.FlexBasis left, Microsoft.Maui.Layouts.FlexBasis right) -> bool
 static Microsoft.Maui.Layouts.LayoutExtensions.ArrangeContentUnbounded(this Microsoft.Maui.IContentView! contentView, Microsoft.Maui.Graphics.Rect bounds) -> Microsoft.Maui.Graphics.Size

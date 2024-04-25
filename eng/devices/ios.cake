@@ -6,7 +6,7 @@
 #tool nuget:?package=NUnit.ConsoleRunner&version=3.16.3
 
 const string defaultVersion = "16.4";
-const string dotnetVersion = "net8.0";
+const string dotnetVersion = "net9.0";
 // required
 FilePath PROJECT = Argument("project", EnvironmentVariable("IOS_TEST_PROJECT") ?? DEFAULT_PROJECT);
 string TEST_DEVICE = Argument("device", EnvironmentVariable("IOS_TEST_DEVICE") ?? $"ios-simulator-64_{defaultVersion}"); // comma separated in the form <platform>-<device|simulator>[-<32|64>][_<version>] (eg: ios-simulator-64_13.4,[...])
@@ -38,13 +38,14 @@ string DOTNET_PLATFORM = TEST_DEVICE.ToLower().Contains("simulator") ?
 	$"iossimulator-{System.Runtime.InteropServices.RuntimeInformation.OSArchitecture.ToString().ToLower()}"
   : $"ios-arm64";
 string CONFIGURATION = Argument("configuration", "Debug");
-bool DEVICE_CLEANUP = Argument("cleanup", true);
+bool DEVICE_CLEANUP = Argument("cleanup", !IsCIBuild());
 string TEST_FRAMEWORK = "net472";
 
 Information("Project File: {0}", PROJECT);
 Information("Build Binary Log (binlog): {0}", BINLOG_DIR);
 Information("Build Platform: {0}", PLATFORM);
 Information("Build Configuration: {0}", CONFIGURATION);
+Information("Runtime Variant: {0}", RUNTIME_VARIANT);
 
 string DOTNET_TOOL_PATH = "/usr/local/share/dotnet/dotnet";
 
@@ -77,6 +78,7 @@ Setup(context =>
 	if (TEST_DEVICE.IndexOf("_") != -1) 
 	{
 		GetSimulators(TEST_DEVICE);
+		ResetSimulators(TEST_DEVICE);
 	}
 });
 
@@ -99,13 +101,11 @@ void Cleanup()
 		return;
 	}
 	var simulatorName = "XHarness";
-	if(iosVersion.Contains("17"))
-		simulatorName = "iPhone 15";	
-	Information("Looking for simulator: {0} iosversion {1}", simulatorName, iosVersion);
+	Information("Looking for simulator: {0} ios version {1}", simulatorName, iosVersion);
 	var xharness = sims.Where(s => s.Name.Contains(simulatorName))?.ToArray();
 	if(xharness == null || xharness.Length == 0)
 	{
-		Information("No XHarness simulators found to delete.");
+		Information("No simulators with {0} found to delete.", simulatorName);
 		return;
 	}
 	foreach (var sim in xharness) {
@@ -130,6 +130,8 @@ Task("Build")
 	.WithCriteria(!string.IsNullOrEmpty(PROJECT.FullPath))
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+	
 	var name = System.IO.Path.GetFileNameWithoutExtension(PROJECT.FullPath);
 	var binlog = $"{BINLOG_DIR}/{name}-{CONFIGURATION}-ios.binlog";
 	
@@ -160,8 +162,17 @@ Task("Build")
 Task("uitest-build")
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+
 	var name = System.IO.Path.GetFileNameWithoutExtension(DEFAULT_APP_PROJECT);
 	var binlog = $"{BINLOG_DIR}/{name}-{CONFIGURATION}-ios.binlog";
+
+	if (USE_NATIVE_AOT && CONFIGURATION.Equals("Debug", StringComparison.OrdinalIgnoreCase))
+	{
+		var errMsg = $"Error: Running UI tests with NativeAOT is only supported in Release configuration";
+		Error(errMsg);
+		throw new Exception(errMsg);
+	}
 
 	Information("app" +DEFAULT_APP_PROJECT);
 	DotNetBuild(DEFAULT_APP_PROJECT, new DotNetBuildSettings {
@@ -172,14 +183,10 @@ Task("uitest-build")
 		{ 	
 			args
 			.Append("/p:BuildIpa=true")
+			.Append($"/p:_UseNativeAot={USE_NATIVE_AOT}")
 			.Append("/bl:" + binlog)
-			.Append("/tl");
-			
-			// if we building for a device
-			if(TEST_DEVICE.ToLower().Contains("device"))
-			{
-				args.Append("/p:RuntimeIdentifier=ios-arm64");
-			}
+			.Append("/tl")
+			.Append($"/p:RuntimeIdentifier={DOTNET_PLATFORM}");
 
 			return args;
 		}
@@ -190,6 +197,8 @@ Task("Test")
 	.IsDependentOn("Build")
 	.Does(() =>
 {
+	SetDotNetEnvironmentVariables();
+
 	if (string.IsNullOrEmpty(TEST_APP)) {
 		if (string.IsNullOrEmpty(PROJECT.FullPath))
 			throw new Exception("If no app was specified, an app must be provided.");
@@ -239,6 +248,8 @@ Task("Test")
 				$"--app=\"{TEST_APP}\" " +
 				$"--targets=\"{TEST_DEVICE}\" " +
 				$"--output-directory=\"{TEST_RESULTS}\" " +
+				$"--timeout=01:15:00 " +
+				$"--launch-timeout=00:06:00 " +
 				xcode_args +
 				$"--verbosity=\"Debug\" ");
 			
@@ -304,6 +315,7 @@ Task("uitest")
 			Configuration = CONFIGURATION,
 			ArgumentCustomization = args => args
 				.Append("/p:ExtraDefineConstants=IOSUITEST")
+				.Append($"/p:_UseNativeAot={USE_NATIVE_AOT}")
 				.Append("/bl:" + binlog)
 				.Append("/tl")
 			
@@ -449,11 +461,9 @@ void InstallIpa(string testApp, string testAppPackageName, string testDevice, st
 		else
 		{
 			var simulatorName = "XHarness";
-			if(iosVersionToRun.Contains("17"))
-				simulatorName = "iPhone 15";	
 			Information("Looking for simulator: {0} iosversion {1}", simulatorName, iosVersionToRun);
 			var sims = ListAppleSimulators();
-			var simXH = sims.Where(s => s.Name.Contains(simulatorName)).FirstOrDefault();
+			var simXH = sims.Where(s => s.Name.Contains(simulatorName) && s.Name.Contains(iosVersionToRun)).FirstOrDefault();
 			if(simXH == null)
 				throw new Exception("No simulator was found to run tests on.");
 
@@ -476,6 +486,19 @@ void GetSimulators(string version)
 			DiagnosticOutput = true,
 			ArgumentCustomization = args => args.Append("run xharness apple simulators install " +
 				$"\"{version}\" " +
+				$"--verbosity=\"Debug\" ")
+		});
+}
+
+void ResetSimulators(string version)
+{
+	var logDirectory = GetLogDirectory();
+	DotNetTool("tool", new DotNetToolSettings {
+			ToolPath = DOTNET_TOOL_PATH,
+			DiagnosticOutput = true,
+			ArgumentCustomization = args => args.Append("run xharness apple simulators reset-simulator " +
+				$"--output-directory=\"{logDirectory}\" " +
+				$"--target=\"{version}\" " +
 				$"--verbosity=\"Debug\" ")
 		});
 }
