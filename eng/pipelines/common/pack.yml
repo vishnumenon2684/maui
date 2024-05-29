@@ -174,13 +174,22 @@ steps:
 
   - task: CopyFiles@2
     condition: always()
-    displayName: 'Copy metadata to staging'
+    displayName: 'Copy metadata sdks to staging'
     inputs:
-      SourceFolder: ${{ parameters.checkoutDirectory }}/artifacts
+      SourceFolder: ${{ parameters.checkoutDirectory }}/artifacts/packages/Release/Shipping
       Contents: |
-        **/metadata/**
-        **/api-diff/**
-      TargetFolder: ${{ parameters.artifactsPath }}/metadata
+        **/metadata/sdks/**/*
+      TargetFolder: ${{ parameters.artifactsPath }}/metadata/sdks
+      flattenFolders: true
+  
+  - task: CopyFiles@2
+    condition: always()
+    displayName: 'Copy metadata rollbacks to staging'
+    inputs:
+      SourceFolder: ${{ parameters.checkoutDirectory }}/artifacts/packages/Release/Shipping
+      Contents: |
+        **/rollbacks/**/*
+      TargetFolder: ${{ parameters.artifactsPath }}/metadata/rollbacks
 
   - task: CopyFiles@2
     displayName: 'Copy Log Files'
