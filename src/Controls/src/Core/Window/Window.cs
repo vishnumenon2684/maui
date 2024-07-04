@@ -565,9 +565,9 @@ namespace Microsoft.Maui.Controls
 		private protected override void OnHandlerChangingCore(HandlerChangingEventArgs args)
 		{
 			base.OnHandlerChangingCore(args);
-			var mauiContext = args?.NewHandler?.MauiContext;
+			var mauiContext = args.NewHandler?.MauiContext;
 
-			if (FlowDirection == FlowDirection.MatchParent && mauiContext != null)
+			if (FlowDirection == FlowDirection.MatchParent && mauiContext is not null)
 			{
 				var flowDirection = AppInfo.Current.RequestedLayoutDirection.ToFlowDirection();
 				FlowController.EffectiveFlowDirection = flowDirection.ToEffectiveFlowDirection(true);
@@ -579,15 +579,8 @@ namespace Microsoft.Maui.Controls
 			if (oldValue is Page oldPage)
 			{
 				oldPage.SendDisappearing();
+				oldPage.WireUpAsOutgoingPage(newValue as Page);
 			}
-		}
-
-		IDisposable? _handleNavigatedEventsForRootPage = null!;
-		void HandleNavigatedEventsForRootPage(Page? oldPage, Page? newPage)
-		{
-			_handleNavigatedEventsForRootPage?.Dispose();
-			_handleNavigatedEventsForRootPage = null;
-			_handleNavigatedEventsForRootPage = oldPage.HandleNavigatedEventsForNavigatingTo(newPage);
 		}
 
 		void OnPageChanged(Page? oldPage, Page? newPage)
@@ -634,7 +627,7 @@ namespace Microsoft.Maui.Controls
 
 			Handler?.UpdateValue(nameof(IWindow.FlowDirection));
 
-			HandleNavigatedEventsForRootPage(oldPage, newPage);
+			newPage?.WireUpAsIncomingPage(oldPage);
 		}
 
 		void OnPageHandlerChanged(object? sender, EventArgs e)

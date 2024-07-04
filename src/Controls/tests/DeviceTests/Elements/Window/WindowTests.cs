@@ -145,8 +145,17 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				((Page)s).NavigatedFrom -= NavigatedFromHandler;
 				hasNavigatedFromFired = true;
-				Assert.NotEqual(window.Page, s);
-				Assert.Equal(window.Page, args.DestinationPage);
+
+				// if the destination page is null that means this page is being unloaded
+				if (args.DestinationPage is null)
+				{
+					Assert.Equal(window.Page, s);
+				}
+				else
+				{
+					Assert.NotEqual(window.Page, s);
+					Assert.Equal(window.Page, args.DestinationPage);
+				}
 			};
 
 			EventHandler<NavigatingFromEventArgs> NavigatingFromHandler = null;			
@@ -155,7 +164,7 @@ namespace Microsoft.Maui.DeviceTests
 				Assert.False(hasNavigatedToFired);
 				((Page)s).NavigatingFrom -= NavigatingFromHandler;
 				hasNavigatingFromFired = true;
-				Assert.NotEqual(window.Page, s);
+				Assert.Equal(window.Page, s);
 			};
 
 			firstRootPage.NavigatedTo += NavigatedToHandler;
