@@ -178,7 +178,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			_appeared = false;
 			PageController.SendDisappearing();
 
-			if(View.Window is not null)
+			if(View.Window is null)
 			{
 				_movedToWindow?.Invoke(this, EventArgs.Empty);
 			}
