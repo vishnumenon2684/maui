@@ -33,7 +33,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup Condition=" '$(UseMaui)' != 'true' and '$(TargetPlatformIdentifier)' == 'android' ">
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.2.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.3" />
     <PackageReference Include="Xamarin.Google.Android.Material" Version="1.11.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetPlatformIdentifier)' == 'android' ">

@@ -15,7 +15,7 @@
     <AndroidResource Include="Resources\**\*" />
   </ItemGroup>
   <ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) " >
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.7.7.4" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.3" />
     <PackageReference Include="Xamarin.Google.Android.Material" Version="1.11.0" />
   </ItemGroup>
   <ItemGroup>

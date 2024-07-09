@@ -75,6 +75,17 @@
     </ItemGroup>
   </Target>
 
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Common" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.Android" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.Process" Version="2.8.3" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.ViewModelSavedState" Version="2.8.3" />
+  </ItemGroup>
+
   <Import Project="$(MauiSrcDirectory)Workload\Shared\LibraryPacks.targets" />
 
   <Import Project="$(MauiSrcDirectory)PublicAPI.targets" />
