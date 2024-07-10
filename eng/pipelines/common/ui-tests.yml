@@ -53,6 +53,23 @@ stages:
           APPIUM_HOME: $(System.DefaultWorkingDirectory)/.appium/
         steps:
           - template: ui-tests-build-sample.yml
+            parameters:
+                runtimeVariant: "Mono"
+  
+  - stage: build_ui_tests_nativeaot
+    displayName: Build UITests Sample App NativeAOT
+    dependsOn: []
+    jobs:
+      - job: build_ui_tests
+        displayName: Build Sample App
+        pool: ${{ parameters.androidPool }}
+        variables:
+          REQUIRED_XCODE: $(DEVICETESTS_REQUIRED_XCODE)
+          APPIUM_HOME: $(System.DefaultWorkingDirectory)/.appium/
+        steps:
+          - template: ui-tests-build-sample.yml
+            parameters:
+                runtimeVariant: "NativeAOT"
 
   - stage: build_ui_tests_windows
     displayName: Build UITests Windows Sample App
@@ -106,9 +123,6 @@ stages:
                       agentPoolAccessToken: ${{ parameters.agentPoolAccessToken }}
                       testFilter: $(CATEGORYGROUP)
 
-  # - stage: ios_ui_tests_mono
-  #   displayName: iOS UITests Mono
-  #   dependsOn: []
 
   - stage: ios_ui_tests
     displayName: iOS UITests
@@ -152,7 +166,7 @@ stages:
 
   - stage: ios_ui_tests_nativeaot
     displayName: iOS UITests NativeAOT
-    dependsOn: []
+    dependsOn: build_ui_tests_nativeaot
     jobs:
       - ${{ each project in parameters.projects }}:
         - ${{ if ne(project.ios, '') }}:
@@ -172,7 +186,7 @@ stages:
                     parameters:
                       platform: ios
                       ${{ if eq(version, 'latest') }}:
-                        version: 16.4
+                        version: 17.2
                       ${{ if ne(version, 'latest') }}:
                         version: ${{ version }}
                       path: ${{ project.ios }}
