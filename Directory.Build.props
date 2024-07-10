@@ -4,7 +4,7 @@
 
   <PropertyGroup> 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>NU1608</WarningsNotAsErrors>
+    <WarningsNotAsErrors>NU1608;CS0618;XAOBS001</WarningsNotAsErrors>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>Latest</LangVersion>
