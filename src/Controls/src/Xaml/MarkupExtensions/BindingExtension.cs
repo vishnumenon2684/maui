@@ -6,6 +6,7 @@ using Microsoft.Maui.Controls.Internals;
 
 namespace Microsoft.Maui.Controls.Xaml
 {
+	[RequireService([typeof(IXamlTypeResolver), typeof(IXamlDataTypeProvider)])]
 	[ContentProperty(nameof(Path))]
 	public sealed class BindingExtension : IMarkupExtension<BindingBase>
 	{
@@ -30,13 +31,7 @@ namespace Microsoft.Maui.Controls.Xaml
 				{
 					typeResolver.TryResolve(dataTypeProvider.BindingDataType, out bindingXDataType);
 				}
-				return new Binding(Path, Mode, Converter, ConverterParameter, StringFormat, Source)
-				{
-					UpdateSourceEventName = UpdateSourceEventName,
-					FallbackValue = FallbackValue,
-					TargetNullValue = TargetNullValue,
-					DataType = bindingXDataType,
-				};
+				return CreateBinding(bindingXDataType);
 			}
 
 			TypedBinding.Mode = Mode;
@@ -48,6 +43,20 @@ namespace Microsoft.Maui.Controls.Xaml
 			TypedBinding.FallbackValue = FallbackValue;
 			TypedBinding.TargetNullValue = TargetNullValue;
 			return TypedBinding;
+
+			[UnconditionalSuppressMessage("TrimAnalysis", "IL2026",
+				Justification = "This code is only reachable in XamlC compiled code when there is a missing x:DataType and the binding could not be compiled. " +
+					"In that case, we produce a warning that the binding could not be compiled.")]
+			BindingBase CreateBinding(Type bindingXDataType)
+			{
+				return new Binding(Path, Mode, Converter, ConverterParameter, StringFormat, Source)
+				{
+					UpdateSourceEventName = UpdateSourceEventName,
+					FallbackValue = FallbackValue,
+					TargetNullValue = TargetNullValue,
+					DataType = bindingXDataType,
+				};
+			}
 		}
 
 		object IMarkupExtension.ProvideValue(IServiceProvider serviceProvider)
