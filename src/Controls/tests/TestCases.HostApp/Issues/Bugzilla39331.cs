@@ -5,6 +5,7 @@ using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 using Microsoft.Maui.Graphics;
 using AbsoluteLayoutFlags = Microsoft.Maui.Layouts.AbsoluteLayoutFlags;
+using Button = Microsoft.Maui.Controls.Button;
 
 namespace Maui.Controls.Sample.Issues;
 

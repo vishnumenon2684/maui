@@ -2,107 +2,103 @@ using System;
 using Microsoft.Maui.Controls.CustomAttributes;
 using Microsoft.Maui.Controls.Internals;
 
-namespace Maui.Controls.Sample.Issues
+namespace Maui.Controls.Sample.Issues;
+
+[Preserve(AllMembers = true)]
+[Issue(IssueTracker.Bugzilla, 38731, "iOS.NavigationRenderer.GetAppearedOrDisappearedTask NullReferenceExceptionObject", PlatformAffected.iOS)]
+public class Bugzilla38731 : TestContentPage
 {
-
-	[NUnit.Framework.Category(Compatibility.UITests.UITestCategories.Bugzilla)]
-
-	[Preserve(AllMembers = true)]
-	[Issue(IssueTracker.Bugzilla, 38731, "iOS.NavigationRenderer.GetAppearedOrDisappearedTask NullReferenceExceptionObject", PlatformAffected.iOS)]
-	public class Bugzilla38731 : TestContentPage
+	protected override void Init()
 	{
-		protected override void Init()
+		var label = new Label();
+		label.Text = "Page one...";
+		label.HorizontalTextAlignment = TextAlignment.Center;
+
+		var button = new Button();
+		button.AutomationId = "btn1";
+		button.Text = "Navigate to page two";
+		button.Clicked += Button_Clicked;
+
+		var content = new StackLayout();
+		content.Children.Add(label);
+		content.Children.Add(button);
+
+		Title = "Page one";
+		Content = content;
+	}
+
+	void Button_Clicked(object sender, EventArgs e)
+	{
+		Navigation.PushAsync(new PageTwo());
+	}
+
+	public class PageTwo : ContentPage
+	{
+		public PageTwo()
 		{
 			var label = new Label();
-			label.Text = "Page one...";
+			label.Text = "Page two...";
 			label.HorizontalTextAlignment = TextAlignment.Center;
 
 			var button = new Button();
-			button.AutomationId = "btn1";
-			button.Text = "Navigate to page two";
+			button.AutomationId = "btn2";
+			button.Text = "Navigate to page three";
 			button.Clicked += Button_Clicked;
 
 			var content = new StackLayout();
 			content.Children.Add(label);
 			content.Children.Add(button);
 
-			Title = "Page one";
+			Title = "Page two";
 			Content = content;
 		}
 
 		void Button_Clicked(object sender, EventArgs e)
 		{
-			Navigation.PushAsync(new PageTwo());
+			Navigation.PushAsync(new PageThree());
+		}
+	}
+
+	public class PageThree : ContentPage
+	{
+		public PageThree()
+		{
+			var label = new Label();
+			label.Text = "Page three...";
+			label.HorizontalTextAlignment = TextAlignment.Center;
+
+			var button = new Button();
+			button.AutomationId = "btn3";
+			button.Text = "Navigate to page four";
+			button.Clicked += Button_Clicked;
+
+			var content = new StackLayout();
+			content.Children.Add(label);
+			content.Children.Add(button);
+
+			Title = "Page three";
+			Content = content;
 		}
 
-		public class PageTwo : ContentPage
+		void Button_Clicked(object sender, EventArgs e)
 		{
-			public PageTwo()
-			{
-				var label = new Label();
-				label.Text = "Page two...";
-				label.HorizontalTextAlignment = TextAlignment.Center;
-
-				var button = new Button();
-				button.AutomationId = "btn2";
-				button.Text = "Navigate to page three";
-				button.Clicked += Button_Clicked;
-
-				var content = new StackLayout();
-				content.Children.Add(label);
-				content.Children.Add(button);
-
-				Title = "Page two";
-				Content = content;
-			}
-
-			void Button_Clicked(object sender, EventArgs e)
-			{
-				Navigation.PushAsync(new PageThree());
-			}
+			Navigation.PushAsync(new PageFour());
 		}
+	}
 
-		public class PageThree : ContentPage
+	public class PageFour : ContentPage
+	{
+		public PageFour()
 		{
-			public PageThree()
-			{
-				var label = new Label();
-				label.Text = "Page three...";
-				label.HorizontalTextAlignment = TextAlignment.Center;
+			var label = new Label();
+			label.Text = "Last page... Tap back very quick";
+			label.HorizontalTextAlignment = TextAlignment.Center;
 
-				var button = new Button();
-				button.AutomationId = "btn3";
-				button.Text = "Navigate to page four";
-				button.Clicked += Button_Clicked;
+			var content = new StackLayout();
+			content.Children.Add(label);
 
-				var content = new StackLayout();
-				content.Children.Add(label);
-				content.Children.Add(button);
-
-				Title = "Page three";
-				Content = content;
-			}
-
-			void Button_Clicked(object sender, EventArgs e)
-			{
-				Navigation.PushAsync(new PageFour());
-			}
-		}
-
-		public class PageFour : ContentPage
-		{
-			public PageFour()
-			{
-				var label = new Label();
-				label.Text = "Last page... Tap back very quick";
-				label.HorizontalTextAlignment = TextAlignment.Center;
-
-				var content = new StackLayout();
-				content.Children.Add(label);
-
-				Title = "Page four";
-				Content = content;
-			}
+			Title = "Page four";
+			Content = content;
 		}
 	}
 }
