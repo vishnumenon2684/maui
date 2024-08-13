@@ -5,6 +5,7 @@ using UITest.Core;
 
 namespace Microsoft.Maui.TestCases.Tests.Issues;
 
+[Category(UITestCategories.FlyoutPage)]
 public class Bugzilla40333 : _IssuesUITest
 {
 	public Bugzilla40333(TestDevice testDevice) : base(testDevice)
@@ -14,7 +15,7 @@ public class Bugzilla40333 : _IssuesUITest
 	public override string Issue => "[Android] IllegalStateException: Recursive entry to executePendingTransactions";
 
 	[Test]
-	public void ClickingOnMenuItemInMasterDoesNotCrash_NavPageVersion()
+	public void ClickingOnMenuItemInRootDoesNotCrash_NavPageVersion()
 	{
 		App.Tap("StartNavPageTest");
 		App.WaitForElement("OpenRoot");
@@ -27,7 +28,7 @@ public class Bugzilla40333 : _IssuesUITest
 	}
 
 	[Test]
-	public void ClickingOnMenuItemInMasterDoesNotCrash_TabPageVersion()
+	public void ClickingOnMenuItemInRootDoesNotCrash_TabPageVersion()
 	{
 		App.Tap("StartTabPageTest");
 		App.WaitForElement("OpenRoot");
