@@ -38,7 +38,6 @@ public class Bugzilla41271 : TestTabbedPage
 		{
 			View = new StackLayout
 			{
-				AutomationId = stateLabel,
 				Orientation = StackOrientation.Horizontal,
 				Children =
 				{
@@ -60,6 +59,7 @@ public class Bugzilla41271 : TestTabbedPage
 				lastNameLabel.Text = item.LastName;
 				cityLabel.Text = item.City;
 				stateLabel.Text = item.State;
+				AutomationId = item.State;
 			}
 		}
 	}

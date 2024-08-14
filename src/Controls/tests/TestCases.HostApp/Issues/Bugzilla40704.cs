@@ -84,7 +84,6 @@ public class Bugzilla40704 : TestContentPage
 			patientGroups.Add(new PatientsGroupViewModel(patients)
 			{
 				Title = "Menu - " + i.ToString(),
-				AutomationId = "Menu - " + i.ToString(),
 			});
 
 		}
@@ -108,6 +107,7 @@ public class Bugzilla40704 : TestContentPage
 			var lbl = new Label { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.FillAndExpand, TextColor = Colors.Black, FontSize = 16 };
 #pragma warning restore CS0618 // Type or member is obsolete
 			lbl.SetBinding(Label.TextProperty, new Binding("Title"));
+			lbl.SetBinding(Label.AutomationIdProperty, new Binding("Title"));
 
 			grd.Children.Add(lbl);
 			View = grd;

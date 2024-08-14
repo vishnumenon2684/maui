@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 using Microsoft.Maui.Graphics;
+using Button = Microsoft.Maui.Controls.Button;
 
 namespace Maui.Controls.Sample.Issues;
 

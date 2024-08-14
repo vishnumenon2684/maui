@@ -41,7 +41,7 @@ public class Bugzilla39331 : TestContentPage
 		};
 #pragma warning restore CS0618 // Type or member is obsolete
 		_btnLogin.Clicked += BtnLogin_Clicked;
-		layout.Children.Add(_btnLogin, new Rect(0.5f, 0.5f, 0.25f, 0.25f), AbsoluteLayoutFlags.All);
+		layout.Children.Add(_btnLogin);
 
 		_busyBackground = new BoxView
 		{
@@ -53,7 +53,7 @@ public class Bugzilla39331 : TestContentPage
 		// Bump up elevation on Android to cover FastRenderer Button
 		((BoxView)_busyBackground).On<Android>().SetElevation(10f);
 
-		layout.Children.Add(_busyBackground, new Rect(0, 0, 1, 1), AbsoluteLayoutFlags.SizeProportional);
+		layout.Children.Add(_busyBackground);
 
 		Content = layout;
 	}

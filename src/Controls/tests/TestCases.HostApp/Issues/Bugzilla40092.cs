@@ -38,7 +38,7 @@ public class Bugzilla40092 : TestContentPage
 			AutomationId = Black
 		};
 
-		mainLayout.Add(view, new Rect(0, 0, 1, 1), AbsoluteLayoutFlags.All);
+		mainLayout.Add(view);
 		Content = thePage;
 
 	}

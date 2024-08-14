@@ -56,7 +56,9 @@ public class Bugzilla40955 : TestFlyoutPage
 		public MasterPage()
 		{
 			Title = "Menu";
+#pragma warning disable CS0618 // Type or member is obsolete
 			ListView = new ListView { VerticalOptions = LayoutOptions.FillAndExpand, SeparatorVisibility = SeparatorVisibility.None };
+#pragma warning restore CS0618 // Type or member is obsolete
 
 			ListView.ItemTemplate = new DataTemplate(() =>
 			{
