@@ -4,6 +4,8 @@ using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 using Microsoft.Maui.Graphics;
 using Button = Microsoft.Maui.Controls.Button;
+using ListView = Microsoft.Maui.Controls.ListView;
+using ViewCell = Microsoft.Maui.Controls.ViewCell;
 
 namespace Maui.Controls.Sample.Issues;
 

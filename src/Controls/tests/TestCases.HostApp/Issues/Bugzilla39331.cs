@@ -51,7 +51,7 @@ public class Bugzilla39331 : TestContentPage
 		};
 
 		// Bump up elevation on Android to cover FastRenderer Button
-		((BoxView)_busyBackground).On<Android>().SetElevation(10f);
+		((BoxView)_busyBackground).On<Microsoft.Maui.Controls.PlatformConfiguration.Android>().SetElevation(10f);
 
 		layout.Children.Add(_busyBackground);
 
