@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿#if !WINDOWS // Setting orientation is not supported on Windows
+using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -14,6 +15,7 @@ public class Bugzilla30353 : _IssuesUITest
 
 	[Test]
 	[FailsOnMac]
+	[FailsOnIOS]
 	[Category(UITestCategories.FlyoutPage)]
 	public void FlyoutPageIsPresentedChangedRaised()
 	{
@@ -50,3 +52,4 @@ public class Bugzilla30353 : _IssuesUITest
 		App.SetOrientationPortrait();
 	}
 }
+#endif

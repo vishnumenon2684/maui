@@ -1,4 +1,4 @@
-﻿#if !IOS
+﻿#if !IOS && !WINDOWS // Setting orientation is not supported on Windows
 using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
