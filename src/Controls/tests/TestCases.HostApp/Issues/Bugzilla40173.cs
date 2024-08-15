@@ -38,7 +38,7 @@ public class Bugzilla40173 : TestContentPage
 		};
 
 		// Bump up the elevation on Android so the Button is covered (FastRenderers)
-		boxView.On<Android>().SetElevation(10f);
+		boxView.On<Microsoft.Maui.Controls.PlatformConfiguration.Android>().SetElevation(10f);
 
 		var testGrid = new Grid
 		{
