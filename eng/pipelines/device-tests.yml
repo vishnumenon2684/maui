@@ -117,7 +117,7 @@ stages:
         windowsVersions: ['packaged', 'unpackaged']
         provisionatorChannel: ${{ parameters.provisionatorChannel }}
       ${{ else }}:
-        androidApiLevels: [ 33 ]
+        androidApiLevels: [ 33, 23 ]
         iosVersions: [ 'simulator-17.2' ]
         catalystVersions: [ 'latest' ]
         windowsVersions: ['packaged', 'unpackaged']
