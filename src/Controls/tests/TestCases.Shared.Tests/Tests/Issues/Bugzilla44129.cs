@@ -20,6 +20,7 @@ public class Bugzilla44129 : _IssuesUITest
 		App.Screenshot("I am at Issue 1");
 		App.WaitForElement("First");
 		App.Screenshot("I see the Label");
+		App.WaitForElement("Second");
 		App.Tap("Second");
 		App.Tap("Crash Me");
 	}

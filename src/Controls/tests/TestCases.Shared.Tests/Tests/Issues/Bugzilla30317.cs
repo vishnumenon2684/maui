@@ -18,7 +18,7 @@ public class Bugzilla30317 : _IssuesUITest
 	public void Bugzilla30317ItemSourceOnAppearingContentPage ()
 	{
 		App.Screenshot ("I am at Bugzilla30317");
-		App.WaitForElement ("PageOne");
+		App.WaitForElement ("GoToPageTwoButton");
 		App.Screenshot ("I see Page 1");
 
 		App.WaitForElement ("PageOneItem1");

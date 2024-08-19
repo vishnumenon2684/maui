@@ -23,6 +23,7 @@ public class Bugzilla30317 : TestNavigationPage
 			var label = new Label();
 			;
 			label.SetBinding(Label.TextProperty, "Label");
+			label.SetBinding(Label.AutomationIdProperty, "Label");
 			View = label;
 		}
 	}
