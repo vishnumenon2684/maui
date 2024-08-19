@@ -23,13 +23,15 @@ public class AddingMultipleItemsListView : TestContentPage
 
 		var addOneJobButton = new Button
 		{
-			Text = "Add One"
+			Text = "Add One",
+			AutomationId = "Add One"
 		};
 		addOneJobButton.SetBinding(Button.CommandProperty, new Binding("AddOneCommand"));
 
 		var addTwoJobsButton = new Button
 		{
-			Text = "Add Two"
+			Text = "Add Two",
+			AutomationId = "Add Two"
 		};
 		addTwoJobsButton.SetBinding(Button.CommandProperty, new Binding("AddTwoCommand"));
 
@@ -65,6 +67,7 @@ public class AddingMultipleItemsListView : TestContentPage
 				HorizontalOptions = LayoutOptions.StartAndExpand
 			};
 			jobId.SetBinding(Label.TextProperty, "JobId");
+			jobId.SetBinding(Label.AutomationIdProperty, "JobId");
 
 			var jobName = new Label
 			{
@@ -73,6 +76,7 @@ public class AddingMultipleItemsListView : TestContentPage
 				HorizontalOptions = LayoutOptions.CenterAndExpand,
 			};
 			jobName.SetBinding(Label.TextProperty, "JobName");
+			jobName.SetBinding(Label.AutomationIdProperty, "JobName");
 
 			var hours = new Label
 			{

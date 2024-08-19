@@ -26,7 +26,7 @@ public class Bugzilla31602 : TestFlyoutPage
 		{
 			Title = "Side";
 			IconImageSource = "menuIcon.png";
-			var lbl = new Label { Text = "SideMenu" };
+			var lbl = new Label { Text = "SideMenu", AutomationId = "SideMenu" };
 			var btn = new Button { Text = "Menu Opener" };
 
 			btn.SetBinding(Button.CommandProperty, new Binding("OpenSideMenuCommand"));
@@ -57,7 +57,7 @@ public class Bugzilla31602 : TestFlyoutPage
 			{
 				_sideMenu.ChangeIcon();
 			};
-			var btn = new Button { Text = "Sidemenu Opener" };
+			var btn = new Button { Text = "Sidemenu Opener", AutomationId = "Sidemenu Opener" };
 			btn.SetBinding(Button.CommandProperty, new Binding("OpenSideMenuCommand"));
 			Content = new StackLayout { Children = { btns, btn } };
 		}

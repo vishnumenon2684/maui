@@ -10,7 +10,10 @@ public class Bugzilla27731 : TestFlyoutPage
 	{
 		// Initialize ui here instead of ctor
 		Flyout = new ContentPage { Content = new Label { Text = "Menu Item" }, Title = "Menu" };
-		Detail = new NavigationPage(new Page2(_pageTitle));
+		Detail = new NavigationPage(new Page2(_pageTitle)
+		{
+			AutomationId = _pageTitle
+		});
 	}
 
 	class Page2 : ContentPage
@@ -26,7 +29,7 @@ public class Bugzilla27731 : TestFlyoutPage
 				Children =
 			{
 				new Label { Text = $"This is page {count}." },
-				new Button { Text = "Click", Command = new Command(() => Navigation.PushAsync(new Page2(title))) }
+				new Button { Text = "Click", AutomationId = "Click", Command = new Command(() => Navigation.PushAsync(new Page2(title))) }
 			}
 			};
 		}

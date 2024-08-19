@@ -13,7 +13,7 @@ public class Bugzilla43469 : TestContentPage
 	const string kButtonText = "Click to call DisplayAlert six times. Click as fast as you can to close them as they popup to ensure it doesn't crash.";
 	protected override void Init()
 	{
-		var button = new Button { Text = kButtonText, AutomationId= "kButton" };
+		var button = new Button { Text = kButtonText, AutomationId = "kButton" };
 
 		button.Clicked += async (sender, args) =>
 		{

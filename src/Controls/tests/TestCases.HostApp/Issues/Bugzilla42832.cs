@@ -15,7 +15,9 @@ public class Bugzilla42832 : TestContentPage
 	{
 		var items = new List<string>();
 		for (int i = 0; i < 20; i++)
+		{
 			items.Add($"Item #{i}");
+		}
 
 		var template = new DataTemplate(typeof(TestCell));
 		template.SetBinding(TextCell.TextProperty, ".");

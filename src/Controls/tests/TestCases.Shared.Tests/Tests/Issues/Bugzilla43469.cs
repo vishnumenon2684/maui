@@ -20,11 +20,11 @@ public class Bugzilla43469 : _IssuesUITest
 	{
 		App.WaitForElement("kButton");
 		App.Tap("kButton");
-		App.WaitForElement("First");
+		Assert.That(App.GetAlert()?.GetAlertText(), Is.EqualTo("First"));
 		App.GetAlert()?.DismissAlert();
-		App.WaitForElement("Second");
+		Assert.That(App.GetAlert()?.GetAlertText(), Is.EqualTo("Second"));
 		App.GetAlert()?.DismissAlert();
-		App.WaitForElement("Three");
+		Assert.That(App.GetAlert()?.GetAlertText(), Is.EqualTo("Three"));
 		App.GetAlert()?.DismissAlert();
 
 		await Task.Delay(100);
