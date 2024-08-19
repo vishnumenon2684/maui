@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿#if IOS
+using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -32,3 +33,4 @@ public class Bugzilla32801 : _IssuesUITest
 		App.SetOrientationPortrait();
 	}
 }
+#endif
