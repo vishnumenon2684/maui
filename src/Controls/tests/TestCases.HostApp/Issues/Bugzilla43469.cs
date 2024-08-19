@@ -21,24 +21,30 @@ public class Bugzilla43469 : TestContentPage
 			await DisplayAlert("Second", "Text", "OK", "Cancel");
 			await DisplayAlert("Three", "Text", "OK", "Cancel");
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0612 // Type or member is obsolete
 			Device.BeginInvokeOnMainThread(new Action(async () =>
 			{
 				await DisplayAlert("Fourth", "Text", "OK", "Cancel");
 			}));
+#pragma warning restore CS0612 // Type or member is obsolete
 #pragma warning restore CS0618 // Type or member is obsolete
 
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0612 // Type or member is obsolete
 			Device.BeginInvokeOnMainThread(new Action(async () =>
 			{
 				await DisplayAlert("Fifth", "Text", "OK", "Cancel");
 			}));
+#pragma warning restore CS0612 // Type or member is obsolete
 #pragma warning restore CS0618 // Type or member is obsolete
 
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0612 // Type or member is obsolete
 			Device.BeginInvokeOnMainThread(new Action(async () =>
 			{
 				await DisplayAlert("Sixth", "Text", "OK", "Cancel");
 			}));
+#pragma warning restore CS0612 // Type or member is obsolete
 #pragma warning restore CS0618 // Type or member is obsolete
 		};
 
