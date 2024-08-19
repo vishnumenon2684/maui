@@ -25,7 +25,7 @@ public class Bugzilla44044 : TestTabbedPage
 					new Button
 					{
 						Text = "Click to Toggle Swipe Paging",
-						Command = new Command(() => On<Android>().SetIsSwipePagingEnabled(!On<Android>().IsSwipePagingEnabled())),
+						Command = new Command(() => On<Microsoft.Maui.Controls.PlatformConfiguration.Android>().SetIsSwipePagingEnabled(!On<Microsoft.Maui.Controls.PlatformConfiguration.Android>().IsSwipePagingEnabled())),
 						AutomationId = _btnToggleSwipe
 					}
 				}
