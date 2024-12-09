@@ -213,7 +213,7 @@ namespace Microsoft.Maui.Platform
 
 				if (child is UIImageView || (child is UIButton imageButton && imageButton.ImageView?.Image is not null && imageButton.CurrentTitle is null))
 				{
-					if(CrossPlatformLayout is not null)
+					if (CrossPlatformLayout is not null)
 					{
 						returnSize = CrossPlatformLayout.CrossPlatformMeasure(widthConstraint, heightConstraint);
 					}
@@ -342,7 +342,7 @@ namespace Microsoft.Maui.Platform
 			_borderView.UpdateMauiCALayer(Border);
 		}
 
-		CALayer? GetLayer()
+		static CALayer? GetLayer()
 		{
 			var sublayers = Layer?.Sublayers;
 			if (sublayers is null)
@@ -355,7 +355,7 @@ namespace Microsoft.Maui.Platform
 			return Layer;
 		}
 
-		CALayer? GetBackgroundLayer()
+		static CALayer? GetBackgroundLayer()
 		{
 			var sublayers = Layer?.Sublayers;
 			if (sublayers is null)
