@@ -194,6 +194,14 @@ namespace Microsoft.Maui.Controls.Platform
 
 			var parentView = GetModalParentView();
 
+			// Check if we're in a Shell context and if Shell is ready
+			var window = _window;
+			if (window?.Page is Shell shell && !IsShellReadyForModalPresentation(shell))
+			{
+				// Delay modal presentation until Shell is fully loaded
+				await WaitForShellToBeReady(shell);
+			}
+
 			var dialogFragment = new ModalFragment(WindowMauiContext, modal)
 			{
 				Cancelable = false,
@@ -224,6 +232,32 @@ namespace Microsoft.Maui.Controls.Platform
 				NavAnimationInProgress = false;
 				animationCompletionSource.SetResult(true);
 			}
+		}
+
+		bool IsShellReadyForModalPresentation(Shell shell)
+		{
+			// Check if Shell is fully loaded and has its appearance initialized
+			return shell.Handler != null && shell.IsLoaded;
+		}
+
+		async Task WaitForShellToBeReady(Shell shell)
+		{
+			if (IsShellReadyForModalPresentation(shell))
+				return;
+
+			var tcs = new TaskCompletionSource<bool>();
+			
+			EventHandler? loadedHandler = null;
+			loadedHandler = (sender, e) =>
+			{
+				shell.Loaded -= loadedHandler;
+				tcs.SetResult(true);
+			};
+			
+			shell.Loaded += loadedHandler;
+			
+			// Add a timeout to prevent infinite waiting
+			await Task.WhenAny(tcs.Task, Task.Delay(5000));
 		}
 
 		internal class ModalFragment : DialogFragment
