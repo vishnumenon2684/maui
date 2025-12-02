@@ -1,5 +1,55 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+             xmlns:local="clr-namespace:Maui.Controls.Sample"
+             Title="Issue 32869 - Wide Image Test">
+         <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+
+            <Label Text="Testing Issue 32869: Wide Image Crash on Android"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   Margin="0,20,0,10"/>
+
+            <Label Text="This tests a 1600x130 pixel image that previously caused Android to crash with 'Canvas: trying to draw too large bitmap' error."
+                   FontSize="14"
+                   TextColor="Gray"/>
+
+            <Label x:Name="StatusLabel"
+                   Text="Status: Initializing..."
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="Blue"/>
+
+            <Border Stroke="Red"
+                    StrokeThickness="2"
+                    BackgroundColor="LightYellow"
+                    Padding="10"
+                    Margin="0,10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Expected: Image loads without crash"
+                           FontSize="12"
+                           TextColor="Green"/>
+                    <Label Text="Bug: App crashes with OutOfMemoryException"
+                           FontSize="12"
+                           TextColor="Red"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Image x:Name="TestImage"
+                   AutomationId="TestImage"
+                   HeightRequest="130"
+                   Aspect="AspectFit"
+                   BackgroundColor="LightGray"
+                   Margin="0,20,0,0"/>
+
+            <Label x:Name="ImageInfoLabel"
+                   Text="Image Info: Not loaded"
+                   FontSize="12"
+                   TextColor="Gray"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
