@@ -36,5 +36,30 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateCurrentPagesIndicatorTintColor(this UIPageControl pageControl, IIndicatorView indicatorView)
 			=> pageControl.CurrentPageIndicatorTintColor = indicatorView.SelectedIndicatorColor?.ToColor()?.ToPlatform();
+
+		internal static void UpdateIndicatorFlowDirection(this MauiPageControl pageControl, IIndicatorView indicatorView)
+		{
+			var parent = indicatorView.Parent?.Handler?.PlatformView as UIView;
+			bool isRtl = parent?.SemanticContentAttribute == UISemanticContentAttribute.ForceRightToLeft || 
+						 indicatorView.FlowDirection == FlowDirection.RightToLeft;
+
+			var semantic = isRtl ? UISemanticContentAttribute.ForceRightToLeft : UISemanticContentAttribute.ForceLeftToRight;
+			
+			// Only update if the semantic attribute has changed to avoid unnecessary layout passes
+			if (pageControl.SemanticContentAttribute != semantic)
+			{
+				pageControl.SemanticContentAttribute = semantic;
+
+				// Apply semantic attribute to all subviews (indicators)
+				foreach (var subview in pageControl.Subviews)
+				{
+					subview.SemanticContentAttribute = semantic;
+				}
+				
+				// Trigger layout update to ensure template content is repositioned correctly
+				// This is critical for custom templates that need to be centered after RTL is applied
+				pageControl.SetNeedsLayout();
+			}
+		}
 	}
 }

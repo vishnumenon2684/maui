@@ -12,6 +12,7 @@ namespace Microsoft.Maui.Platform
 
 		WeakReference<IIndicatorView>? _indicatorView;
 		bool _updatingPosition;
+		CGRect _lastTemplatedIndicatorViewFrame = CGRect.Empty;
 
 		public MauiPageControl()
 		{
@@ -54,6 +55,7 @@ namespace Microsoft.Maui.Platform
 				return;
 
 			UpdateIndicatorSize();
+			UpdateTemplatedIndicatorFrame();
 
 			if (!IsSquare)
 				return;
@@ -144,6 +146,47 @@ namespace Microsoft.Maui.Platform
 			if (IsSquare && !(OperatingSystem.IsIOSVersionAtLeast(14) || OperatingSystem.IsTvOSVersionAtLeast(14)))
 				LayoutSubviews();
 
+		}
+
+		/// <summary>
+		/// Updates the frame of the templated indicator view to center it within the page control bounds.
+		/// This is necessary to ensure custom indicator templates are properly positioned,
+		/// especially when FlowDirection is RightToLeft.
+		/// </summary>
+		/// <remarks>
+		/// Called during LayoutSubviews to adjust the frame only when it has changed,
+		/// avoiding unnecessary layout updates. Uses SizeThatFits to determine the content's
+		/// intrinsic size and centers it within the available bounds.
+		/// </remarks>
+		void UpdateTemplatedIndicatorFrame()
+		{
+			// Check if we have a valid indicator view with a template
+			if (_indicatorView?.TryGetTarget(out var indicatorView) == true &&
+				indicatorView is ITemplatedIndicatorView templatedView &&
+				templatedView.IndicatorsLayoutOverride is not null)
+			{
+				// Get the native platform view for the template
+				var handler = templatedView.IndicatorsLayoutOverride.Handler?.PlatformView as UIView;
+				
+				// Validate that we have a valid handler and non-zero bounds
+				if (handler is not null && Bounds.Width > 0 && Bounds.Height > 0)
+				{
+					// Get the size that the template content wants to be
+					var size = handler.SizeThatFits(Bounds.Size);
+					
+					// Center the content within the page control bounds
+					var x = (Bounds.Width - size.Width) / 2;
+					var y = (Bounds.Height - size.Height) / 2;
+					var newFrame = new CGRect(x, y, size.Width, size.Height);
+
+					// Only update if the frame has actually changed to avoid unnecessary layout work
+					if (!newFrame.Equals(_lastTemplatedIndicatorViewFrame))
+					{
+						handler.Frame = newFrame;
+						_lastTemplatedIndicatorViewFrame = newFrame;
+					}
+				}
+			}
 		}
 
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = IUIViewLifeCycleEvents.UnconditionalSuppressMessage)]
