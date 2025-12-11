@@ -38,8 +38,24 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapIsOn(ISwitchHandler handler, ISwitch view)
 		{
-			UpdateIsOn(handler);
-			handler.PlatformView?.UpdateIsOn(view);
+			if (handler is SwitchHandler switchHandler)
+			{
+				switchHandler._proxy.SetIsUpdatingProgrammatically(true);
+				try
+				{
+					UpdateIsOn(handler);
+					handler.PlatformView?.UpdateIsOn(view);
+				}
+				finally
+				{
+					switchHandler._proxy.SetIsUpdatingProgrammatically(false);
+				}
+			}
+			else
+			{
+				UpdateIsOn(handler);
+				handler.PlatformView?.UpdateIsOn(view);
+			}
 		}
 
 		public static void MapTrackColor(ISwitchHandler handler, ISwitch view)
@@ -69,6 +85,8 @@ namespace Microsoft.Maui.Handlers
 
 			NSObject? _willEnterForegroundObserver;
 			NSObject? _windowDidBecomeKeyObserver;
+			
+			bool _isUpdatingProgrammatically;
 
 			public void Connect(ISwitch virtualView, UISwitch platformView)
 			{
@@ -110,7 +128,15 @@ namespace Microsoft.Maui.Handlers
 
 						if (VirtualView is ISwitch view && view.TrackColor is not null)
 						{
-							platformView.UpdateTrackColor(view);
+							_isUpdatingProgrammatically = true;
+							try
+							{
+								platformView.UpdateTrackColor(view);
+							}
+							finally
+							{
+								_isUpdatingProgrammatically = false;
+							}
 						}
 					}
 				});
@@ -134,10 +160,19 @@ namespace Microsoft.Maui.Handlers
 
 			void OnControlValueChanged(object? sender, EventArgs e)
 			{
+				// Prevent event from firing during programmatic updates from binding
+				if (_isUpdatingProgrammatically)
+					return;
+
 				if (VirtualView is ISwitch virtualView && sender is UISwitch platformView && virtualView.IsOn != platformView.On)
 				{
 					virtualView.IsOn = platformView.On;
 				}
+			}
+			
+			internal void SetIsUpdatingProgrammatically(bool value)
+			{
+				_isUpdatingProgrammatically = value;
 			}
 		}
 	}
