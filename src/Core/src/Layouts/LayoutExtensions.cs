@@ -49,9 +49,6 @@ namespace Microsoft.Maui.Layouts
 			// And the actual frame width needs to subtract the margins
 			var frameWidth = Math.Max(0, consumedWidth - margin.HorizontalThickness);
 
-			// Ensure the frame width doesn't exceed the available bounds width
-			frameWidth = Math.Min(frameWidth, bounds.Width - margin.HorizontalThickness);
-
 			// We need to determine the height the element wants to consume; normally that's the element's DesiredSize.Height
 			var consumedHeight = view.DesiredSize.Height;
 
@@ -65,9 +62,6 @@ namespace Microsoft.Maui.Layouts
 
 			// And the actual frame height needs to subtract the margins
 			var frameHeight = Math.Max(0, consumedHeight - margin.VerticalThickness);
-
-			// Ensure the frame height doesn't exceed the available bounds height
-			frameHeight = Math.Min(frameHeight, bounds.Height - margin.VerticalThickness);
 
 			var frameX = AlignHorizontal(view, bounds, margin);
 			var frameY = AlignVertical(view, bounds, margin);
@@ -109,8 +103,13 @@ namespace Microsoft.Maui.Layouts
 					break;
 			}
 
-			// Ensure we never position content before the start margin
-			frameX = Math.Max(frameX, startX + startMargin);
+			// When content is larger than bounds with Center/End alignment, the calculation above
+			// can result in positioning before the start margin. Clamp to ensure margin is respected.
+			// This preserves correct centering for content within bounds while respecting margins for overflow.
+			if (desiredWidth > boundsWidth)
+			{
+				frameX = Math.Max(frameX, startX + startMargin);
+			}
 			return frameX;
 		}
 
@@ -142,8 +141,13 @@ namespace Microsoft.Maui.Layouts
 					break;
 			}
 
-			// Ensure we never position content before the top margin
-			frameY = Math.Max(frameY, bounds.Y + margin.Top);
+			// When content is larger than bounds with Center/End alignment, the calculation above
+			// can result in positioning before the top margin. Clamp to ensure margin is respected.
+			// This preserves correct centering for content within bounds while respecting margins for overflow.
+			if (desiredHeight > bounds.Height)
+			{
+				frameY = Math.Max(frameY, bounds.Y + margin.Top);
+			}
 
 			return frameY;
 		}
