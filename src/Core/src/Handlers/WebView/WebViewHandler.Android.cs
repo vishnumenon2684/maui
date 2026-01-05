@@ -84,13 +84,39 @@ namespace Microsoft.Maui.Handlers
 		public static void MapWebViewClient(IWebViewHandler handler, IWebView webView)
 		{
 			if (handler is WebViewHandler platformHandler)
+			{
+				// Only set default client if one hasn't been set or if it's already our default
+				if (OperatingSystem.IsAndroidVersionAtLeast(26))
+				{
+					var existingClient = handler.PlatformView.WebViewClient;
+					if (existingClient != null && existingClient is not MauiWebViewClient)
+					{
+						// Custom WebViewClient already set, don't override
+						return;
+					}
+				}
+
 				handler.PlatformView.SetWebViewClient(new MauiWebViewClient(platformHandler));
+			}
 		}
 
 		public static void MapWebChromeClient(IWebViewHandler handler, IWebView webView)
 		{
 			if (handler is WebViewHandler platformHandler)
+			{
+				// Only set default client if one hasn't been set or if it's already our default
+				if (OperatingSystem.IsAndroidVersionAtLeast(26))
+				{
+					var existingClient = handler.PlatformView.WebChromeClient;
+					if (existingClient != null && existingClient is not MauiWebChromeClient)
+					{
+						// Custom WebChromeClient already set, don't override
+						return;
+					}
+				}
+
 				handler.PlatformView.SetWebChromeClient(new MauiWebChromeClient(platformHandler));
+			}
 		}
 
 		public static void MapWebViewSettings(IWebViewHandler handler, IWebView webView)

@@ -55,6 +55,9 @@ namespace Maui.Controls.Sample
 #if IOS
 				handlers.AddHandler(typeof(Issue30147CustomScrollView), typeof(Issue30147CustomScrollViewHandler));
 #endif
+#if ANDROID
+				handlers.AddHandler(typeof(Issues.CustomWebView), typeof(Issues.CustomWebViewHandler));
+#endif
 			});
 
 			appBuilder.Services.AddTransient<TransientPage>();

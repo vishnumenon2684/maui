@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Maui.Controls.Sample.Issues"
+             x:Class="Maui.Controls.Sample.Issues.Issue24812"
+             Title="Issue 24812">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <Label Text="WebView OnProgressChanged Test" 
+               FontSize="18" 
+               FontAttributes="Bold"
+               AutomationId="TitleLabel"/>
+        
+        <Label Text="Testing custom WebViewHandler with WebChromeClient.OnProgressChanged on Android"
+               FontSize="12"
+               AutomationId="DescriptionLabel"/>
+
+        <Label x:Name="ProgressLabel"
+               Text="Progress: Not Started"
+               FontSize="14"
+               AutomationId="ProgressLabel"/>
+
+        <Label x:Name="ProgressValueLabel"
+               Text="Progress Value: -1"
+               FontSize="14"
+               AutomationId="ProgressValueLabel"/>
+
+        <local:CustomWebView x:Name="TestWebView"
+                             HeightRequest="300"
+                             WidthRequest="400"
+                             AutomationId="TestWebView"
+                             ProgressChanged="OnWebViewProgressChanged"/>
+
+        <Button Text="Load Page"
+                Clicked="OnLoadPage"
+                AutomationId="LoadButton"/>
+
+        <Label x:Name="StatusLabel"
+               Text="Status: Ready"
+               FontSize="12"
+               AutomationId="StatusLabel"/>
+    </VerticalStackLayout>
+</ContentPage>
