@@ -148,7 +148,12 @@ namespace Microsoft.Maui.Platform
 			if (view is IPicker picker && string.IsNullOrEmpty(semantics?.Description))
 				AutomationProperties.SetName(platformView, picker.Title);
 			else if (semantics != null)
+			{
 				AutomationProperties.SetName(platformView, semantics.Description);
+				// Suppress child element announcements when parent has semantic description
+				// This prevents duplicate announcements (e.g., ContentView description + Label text)
+				AutomationProperties.SetAccessibilityView(platformView, AccessibilityView.Raw);
+			}
 
 			if (semantics == null)
 				return;

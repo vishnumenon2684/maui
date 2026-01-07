@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.Issues.Issue33373"
+             Title="Issue 33373">
+
+    <VerticalStackLayout Padding="20" Spacing="10">
+        <Label Text="Semantic Description Duplicate Announcement Test" 
+               FontSize="18" 
+               FontAttributes="Bold"/>
+
+        <Label Text="Focus on the cells below. Narrator should announce the description once, not twice."
+               FontSize="14"/>
+
+        <StackLayout Spacing="10">
+            <!-- Test Case 1: ContentView with semantic description and Label inside -->
+            <ContentView SemanticProperties.Description="First cell with product information"
+                         AutomationProperties.IsInAccessibleTree="True"
+                         BackgroundColor="LightBlue"
+                         Padding="10"
+                         x:Name="TestCell1"
+                         AutomationId="Cell1">
+                <Label Text="Product Name: Widget A"
+                       FontSize="14"
+                       x:Name="Cell1Label"/>
+            </ContentView>
+
+            <!-- Test Case 2: Another cell with different description -->
+            <ContentView SemanticProperties.Description="Second cell showing item details"
+                         AutomationProperties.IsInAccessibleTree="True"
+                         BackgroundColor="LightGreen"
+                         Padding="10"
+                         x:Name="TestCell2"
+                         AutomationId="Cell2">
+                <Label Text="Item Code: SKU-12345"
+                       FontSize="14"
+                       x:Name="Cell2Label"/>
+            </ContentView>
+
+            <!-- Test Case 3: Cell with semantic hint as well -->
+            <ContentView SemanticProperties.Description="Third cell with additional info"
+                         SemanticProperties.Hint="This is supplementary information"
+                         AutomationProperties.IsInAccessibleTree="True"
+                         BackgroundColor="LightYellow"
+                         Padding="10"
+                         x:Name="TestCell3"
+                         AutomationId="Cell3">
+                <Label Text="Price: $99.99"
+                       FontSize="14"
+                       x:Name="Cell3Label"/>
+            </ContentView>
+        </StackLayout>
+
+        <Label x:Name="StatusLabel"
+               Text="Ready to test with Narrator (Windows)"
+               AutomationId="StatusLabel"
+               FontSize="12"
+               TextColor="Gray"/>
+    </VerticalStackLayout>
+</ContentPage>
