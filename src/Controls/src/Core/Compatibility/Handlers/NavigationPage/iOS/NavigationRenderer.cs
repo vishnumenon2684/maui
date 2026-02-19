@@ -512,6 +512,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 				e.PropertyName == NavigationPage.BarBackgroundProperty.PropertyName)
 			{
 				UpdateBarBackground();
+				// Re-apply text/button colors since UpdateBarBackground resets appearance objects
+				// via ConfigureWithOpaqueBackground / ConfigureWithTransparentBackground.
+				UpdateBarTextColor();
 			}
 			else if (e.PropertyName == NavigationPage.BarTextColorProperty.PropertyName
 				  || e.PropertyName == StatusBarTextColorModeProperty.PropertyName)
@@ -943,9 +946,49 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			if (iconColor == null)
 				iconColor = barTextColor;
 
-			NavigationBar.TintColor = iconColor == null || NavPage.OnThisPlatform().GetStatusBarTextColorMode() == StatusBarTextColorMode.DoNotAdjust
-				? UINavigationBar.Appearance.TintColor
-				: iconColor.ToPlatform();
+			var useCustomColor = iconColor != null && NavPage.OnThisPlatform().GetStatusBarTextColorMode() != StatusBarTextColorMode.DoNotAdjust;
+
+			NavigationBar.TintColor = useCustomColor
+				? iconColor.ToPlatform()
+				: UINavigationBar.Appearance.TintColor;
+
+			// iOS 26+ (Liquid Glass) no longer honors TintColor for back button text or arrow.
+			// Apply color explicitly via BackButtonAppearance (text) and SetBackIndicatorImage
+			// (arrow) on each appearance object. When no custom color is set, reset both to
+			// their defaults so removing a color is also reflected correctly.
+			if (OperatingSystem.IsIOSVersionAtLeast(26) || OperatingSystem.IsMacCatalystVersionAtLeast(26))
+			{
+				var backButtonAppearance = new UIBarButtonItemAppearance(UIBarButtonItemStyle.Plain);
+
+				if (useCustomColor)
+				{
+					var platformColor = iconColor.ToPlatform();
+
+					backButtonAppearance.Normal.TitleTextAttributes =
+						new UIStringAttributes { ForegroundColor = platformColor };
+
+					// Tint the back arrow image per appearance object (not on NavigationBar directly,
+					// to avoid global state mutation that would persist after the color is cleared).
+					var arrowImage = UIImage.GetSystemImage("chevron.backward") ?? new UIImage();
+					var tintedArrow = arrowImage.ApplyTintColor(platformColor)
+						.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
+
+					NavigationBar.CompactAppearance.SetBackIndicatorImage(tintedArrow, tintedArrow);
+					NavigationBar.StandardAppearance.SetBackIndicatorImage(tintedArrow, tintedArrow);
+					NavigationBar.ScrollEdgeAppearance.SetBackIndicatorImage(tintedArrow, tintedArrow);
+				}
+				else
+				{
+					// Reset to system defaults when no custom color is set.
+					NavigationBar.CompactAppearance.SetBackIndicatorImage(null, null);
+					NavigationBar.StandardAppearance.SetBackIndicatorImage(null, null);
+					NavigationBar.ScrollEdgeAppearance.SetBackIndicatorImage(null, null);
+				}
+
+				NavigationBar.CompactAppearance.BackButtonAppearance = backButtonAppearance;
+				NavigationBar.StandardAppearance.BackButtonAppearance = backButtonAppearance;
+				NavigationBar.ScrollEdgeAppearance.BackButtonAppearance = backButtonAppearance;
+			}
 		}
 
 		void SetStatusBarStyle()
