@@ -42,9 +42,22 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		context.RegisterImplementationSourceOutput(bindings, (spc, binding) =>
 		{
 			var location = binding.SimpleLocation;
+			if (location == null)
+			{
+				throw new InvalidOperationException("Location cannot be null");
+			}
+
 			var fileName = $"{location.FilePath}-GeneratedBindingInterceptors-{location.Line}-{location.Column}.g.cs";
 			var sanitizedFileName = fileName.Replace('/', '-').Replace('\\', '-').Replace(':', '-');
-			var code = BindingCodeWriter.GenerateBinding(binding, (uint)Math.Abs(location.GetHashCode()));
+			var methodNamePrefix = binding.MethodType switch
+			{
+				InterceptedMethodType.SetBinding => "SetBinding",
+				InterceptedMethodType.Create => "Create",
+				_ => throw new NotSupportedException()
+			};
+			var uniqueId = (uint)Math.Abs(location.GetHashCode());
+
+			var code = BindingCodeWriter.GenerateBinding(binding, $"{methodNamePrefix}{uniqueId}");
 			spc.AddSource(sanitizedFileName, code);
 		});
 	}
@@ -66,7 +79,30 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			&& method.Name.Identifier.Text == "Create"
 			&& invocation.ArgumentList.Arguments.Count >= 1
 			&& invocation.ArgumentList.Arguments[0].Expression is not LiteralExpressionSyntax
-			&& invocation.ArgumentList.Arguments[0].Expression is not ObjectCreationExpressionSyntax;
+			&& invocation.ArgumentList.Arguments[0].Expression is not ObjectCreationExpressionSyntax
+			&& GetTypeNameFromExpression(method.Expression) switch
+			{
+				"Binding" => true,
+				"BindingBase" => true,
+				_ => false
+			};
+	}
+
+	private static string GetTypeNameFromExpression(ExpressionSyntax expression)
+	{
+		// Handle simple identifiers (Binding.Create)
+		if (expression is IdentifierNameSyntax identifier)
+		{
+			return identifier.Identifier.Text;
+		}
+
+		// Handle qualified names (Microsoft.Maui.Controls.Binding.Create)
+		if (expression is MemberAccessExpressionSyntax memberAccess)
+		{
+			return memberAccess.Name.Identifier.Text;
+		}
+
+		return string.Empty;
 	}
 
 	private static Result<BindingInvocationDescription> GetBindingForGeneration(GeneratorSyntaxContext context, CancellationToken t)
@@ -129,7 +165,8 @@ public class BindingSourceGenerator : IIncrementalGenerator
 			Path: new EquatableArray<IPathPart>([.. pathParseResult.Value]),
 			SetterOptions: DeriveSetterOptions(lambdaResult.Value.ExpressionBody, context.SemanticModel, enabledNullable),
 			NullableContextEnabled: enabledNullable,
-			MethodType: interceptedMethodTypeResult.Value);
+			MethodType: interceptedMethodTypeResult.Value,
+			IsPublic: true);
 		return Result<BindingInvocationDescription>.Success(binding);
 	}
 
@@ -173,6 +210,30 @@ public class BindingSourceGenerator : IIncrementalGenerator
 		var lambdaResultType = semanticModel.GetTypeInfo(lambdaBody, t).Type;
 		if (lambdaResultType == null || lambdaResultType is IErrorTypeSymbol)
 		{
+			// Try to infer the type from known patterns (e.g., RelayCommand, ObservableProperty)
+			if (lambdaBody is MemberAccessExpressionSyntax memberAccess)
+			{
+				var memberName = memberAccess.Name.Identifier.Text;
+				var expressionType = semanticModel.GetTypeInfo(memberAccess.Expression).Type;
+
+				if (expressionType != null)
+				{
+					// Check for RelayCommand-generated properties
+					if (expressionType.TryGetRelayCommandPropertyType(memberName, semanticModel.Compilation, out var commandType) &&
+						commandType != null)
+					{
+						return Result<ITypeSymbol>.Success(commandType);
+					}
+
+					// Check for ObservableProperty-generated properties
+					if (expressionType.TryGetObservablePropertyType(memberName, semanticModel.Compilation, out var propertyType) &&
+						propertyType != null)
+					{
+						return Result<ITypeSymbol>.Success(propertyType);
+					}
+				}
+			}
+
 			return Result<ITypeSymbol>.Failure(DiagnosticsFactory.LambdaResultCannotBeResolved(lambdaBody.GetLocation()));
 		}
 

@@ -5,9 +5,14 @@ using UIKit;
 
 namespace Microsoft.Maui.Controls.Handlers.Items;
 
-internal class MauiCollectionView : UICollectionView, IUIViewLifeCycleEvents
+public class MauiCollectionView : UICollectionView, IUIViewLifeCycleEvents, IPlatformMeasureInvalidationController
 {
-	WeakReference<ICustomMauiCollectionViewDelegate>? _customDelegate;
+	bool _invalidateParentWhenMovedToWindow;
+
+	readonly WeakEventManager _movedToWindowEventManager = new();
+
+	internal bool NeedsCellLayout { get; set; }
+
 	public MauiCollectionView(CGRect frame, UICollectionViewLayout layout) : base(frame, layout)
 	{
 	}
@@ -18,33 +23,38 @@ internal class MauiCollectionView : UICollectionView, IUIViewLifeCycleEvents
 			base.ScrollRectToVisible(rect, animated);
 	}
 
+	void IPlatformMeasureInvalidationController.InvalidateAncestorsMeasuresWhenMovedToWindow()
+	{
+		_invalidateParentWhenMovedToWindow = true;
+	}
+
+	bool IPlatformMeasureInvalidationController.InvalidateMeasure(bool isPropagating)
+	{
+		if (isPropagating)
+		{
+			NeedsCellLayout = true;
+		}
+
+		SetNeedsLayout();
+		return !isPropagating;
+	}
+
 	[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = IUIViewLifeCycleEvents.UnconditionalSuppressMessage)]
-	EventHandler? _movedToWindow;
 	event EventHandler? IUIViewLifeCycleEvents.MovedToWindow
 	{
-		add => _movedToWindow += value;
-		remove => _movedToWindow -= value;
+		add => _movedToWindowEventManager.AddEventHandler(value);
+		remove => _movedToWindowEventManager.RemoveEventHandler(value);
 	}
 
 	public override void MovedToWindow()
 	{
 		base.MovedToWindow();
-		_movedToWindow?.Invoke(this, EventArgs.Empty);
+		_movedToWindowEventManager.HandleEvent(this, EventArgs.Empty, nameof(IUIViewLifeCycleEvents.MovedToWindow));
 
-		if (_customDelegate?.TryGetTarget(out var target) == true)
+		if (_invalidateParentWhenMovedToWindow)
 		{
-			target.MovedToWindow(this);
+			_invalidateParentWhenMovedToWindow = false;
+			this.InvalidateAncestorsMeasures();
 		}
-	}
-
-	internal void SetCustomDelegate(ICustomMauiCollectionViewDelegate customDelegate)
-	{
-		_customDelegate = new WeakReference<ICustomMauiCollectionViewDelegate>(customDelegate);
-	}
-
-
-	internal interface ICustomMauiCollectionViewDelegate
-	{
-		void MovedToWindow(UIView view);
 	}
 }

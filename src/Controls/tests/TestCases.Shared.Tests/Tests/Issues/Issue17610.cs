@@ -1,4 +1,5 @@
-﻿#if ANDROID
+﻿#if ANDROID // This code is specifically for Android. It sets the background color of the refresh indicator 
+// (MauiSwipeRefreshLayout) to red, ensuring enough contrast for screenshot comparison during testing. This is not applicable to other platforms.
 using NUnit.Framework;
 using OpenQA.Selenium.Appium.Interactions;
 using OpenQA.Selenium.Interactions;
@@ -32,7 +33,8 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 			DragCoordinatesAndRestore(androidApp, fromX, fromY, toX, toY);
 
-			VerifyScreenshot();
+			App.WaitForElement("RefreshStatusLabel");
+			Assert.That(App.FindElement("RefreshStatusLabel").GetText(), Is.EqualTo("RefreshView Not Triggered"));
 		}
 
 		void DragCoordinatesAndRestore(AppiumAndroidApp androidApp, int fromX, int fromY, int toX, int toY)

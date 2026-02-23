@@ -1,4 +1,3 @@
-#if !MACCATALYST
 using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
@@ -18,8 +17,8 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		public void CarouselViewShouldRenderCorrectly()
 		{
 			App.WaitForElement("Item1");
-			VerifyScreenshot();
+			// Use retryTimeout to wait for CarouselView items to fully load and render
+			VerifyScreenshot(retryTimeout: TimeSpan.FromSeconds(2));
 		}
 	}
 }
-#endif

@@ -114,6 +114,10 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// <summary>
 		/// This iOS platform-specific controls whether padding values are overridden with the safe area insets.
 		/// </summary>
+		/// <remarks>
+		/// This API is deprecated. Use SafeAreaEdges attached property instead for per-edge safe area control.
+		/// </remarks>
+		[System.Obsolete("Use SafeAreaEdges attached property instead for per-edge safe area control.")]
 #if MACCATALYST
 		public static readonly BindableProperty UseSafeAreaProperty = BindableProperty.Create("UseSafeArea", typeof(bool), typeof(Page), true);
 #else
@@ -125,6 +129,10 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// </summary>
 		/// <param name="element">The element to get the safe area behavior from.</param>
 		/// <returns><see langword="true"/> if the padding values are overridden; otherwise, <see langword="false"/>.</returns>
+		/// <remarks>
+		/// This API is deprecated. Use SafeAreaEdges attached property instead for per-edge safe area control.
+		/// </remarks>
+		[System.Obsolete("Use SafeAreaEdges attached property instead for per-edge safe area control.")]
 		public static bool GetUseSafeArea(BindableObject element)
 		{
 			return (bool)element.GetValue(UseSafeAreaProperty);
@@ -135,6 +143,10 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// </summary>
 		/// <param name="element">The element whose safe area use behavior to set.</param>
 		/// <param name="value"><see langword="true"/> to use the safe area inset behavior; otherwise, <see langword="false"/>.</param>
+		/// <remarks>
+		/// This API is deprecated. Use SafeAreaEdges attached property instead for per-edge safe area control.
+		/// </remarks>
+		[System.Obsolete("Use SafeAreaEdges attached property instead for per-edge safe area control.")]
 		public static void SetUseSafeArea(BindableObject element, bool value)
 		{
 			element.SetValue(UseSafeAreaProperty, value);
@@ -146,6 +158,10 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// <param name="config">The element whose safe area behavior to get.</param>
 		/// <param name="value"><see langword="true"/> to use the safe area inset behavior; otherwise, <see langword="false"/>.</param>
 		/// <returns>The updated configuration object on which developers can make successive method calls.</returns>
+		/// <remarks>
+		/// This API is deprecated. Use SafeAreaEdges attached property instead for per-edge safe area control.
+		/// </remarks>
+		[System.Obsolete("Use SafeAreaEdges attached property instead for per-edge safe area control.")]
 		public static IPlatformElementConfiguration<iOS, FormsElement> SetUseSafeArea(this IPlatformElementConfiguration<iOS, FormsElement> config, bool value)
 		{
 			SetUseSafeArea(config.Element, value);
@@ -157,6 +173,10 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// </summary>
 		/// <param name="config">The element whose safe area behavior to get.</param>
 		/// <returns><see langword="true"/> if the padding is overridden with the safe area; otherwise, <see langword="false"/>.</returns>
+		/// <remarks>
+		/// This API is deprecated. Use SafeAreaEdges attached property instead for per-edge safe area control.
+		/// </remarks>
+		[System.Obsolete("Use SafeAreaEdges attached property instead for per-edge safe area control.")]
 		public static bool UsingSafeArea(this IPlatformElementConfiguration<iOS, FormsElement> config)
 		{
 			return GetUseSafeArea(config.Element);
@@ -318,7 +338,7 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific
 		/// <param name="config">The platform specific configuration that contains the element on which to perform the operation.</param>
 		/// <param name="value">The Microsoft.Maui.Controls.View from which the modal will originate</param>
 		/// <returns>The modal presentation style.</returns>
-		public static IPlatformElementConfiguration<iOS, FormsElement> SetModalPopoverView(this IPlatformElementConfiguration<iOS, FormsElement> config, View value )
+		public static IPlatformElementConfiguration<iOS, FormsElement> SetModalPopoverView(this IPlatformElementConfiguration<iOS, FormsElement> config, View value)
 		{
 			SetModalPopoverView(config.Element, value);
 			return config;

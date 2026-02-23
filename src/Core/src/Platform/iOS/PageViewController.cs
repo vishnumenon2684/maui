@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.ApplicationModel;
+﻿using System;
 using UIKit;
 
 namespace Microsoft.Maui.Platform
@@ -17,7 +17,7 @@ namespace Microsoft.Maui.Platform
 		{
 			return new ContentView
 			{
-				CrossPlatformLayout = ((IContentView)view)
+				CrossPlatformLayout = (IContentView)view
 			};
 		}
 
@@ -60,10 +60,27 @@ namespace Microsoft.Maui.Platform
 		{
 			if (CurrentView?.Handler is ElementHandler handler)
 			{
-				var application = handler.GetRequiredService<IApplication>();
+				// Check if the window is being destroyed by verifying its handler is still connected.
+				// Window.Destroying() calls Handler?.DisconnectHandler() before DisposeWindowScope(),
+				// so checking window.Handler == null tells us if we're in the teardown phase.
+				var window = handler.MauiContext?.GetPlatformWindow()?.GetWindow();
+				if (window?.Handler == null)
+				{
+					// Window is being destroyed, skip theme update to avoid accessing disposed services
+					return;
+				}
 
-				application?.UpdateUserInterfaceStyle();
-				application?.ThemeChanged();
+				try
+				{
+					var application = handler.GetRequiredService<IApplication>();
+					application.UpdateUserInterfaceStyle();
+					application.ThemeChanged();
+				}
+				catch (ObjectDisposedException)
+				{
+					// Extra safety net in case we hit a race condition where the service provider
+					// is disposed between our check and the actual service access.
+				}
 			}
 
 #pragma warning disable CA1422 // Validate platform compatibility
@@ -72,3 +89,4 @@ namespace Microsoft.Maui.Platform
 		}
 	}
 }
+

@@ -1,9 +1,9 @@
-﻿#if !MACCATALYST
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
 namespace Microsoft.Maui.TestCases.Tests.Issues;
+
 public class Issue24547 : _IssuesUITest
 {
 	public Issue24547(TestDevice device) : base(device) { }
@@ -18,4 +18,3 @@ public class Issue24547 : _IssuesUITest
 		VerifyScreenshot();
 	}
 }
-#endif

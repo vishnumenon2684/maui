@@ -42,7 +42,7 @@ namespace Microsoft.Maui.DeviceTests
 #if IOS || MACCATALYST
 					handlers.AddHandler(typeof(TabbedPage), typeof(TabbedRenderer));
 #else
-                    handlers.AddHandler(typeof(TabbedPage), typeof(TabbedViewHandler));
+					handlers.AddHandler(typeof(TabbedPage), typeof(TabbedViewHandler));
 #endif
 
 					SetupShellHandlers(handlers);
@@ -158,8 +158,13 @@ namespace Microsoft.Maui.DeviceTests
 				= new Dictionary<ControlsPageTypesTestCase, Page>();
 
 			var nextPage = GetPage(pageSet[0]);
-			var window = new Window(nextPage);
+			Window window = null!;
 
+			await InvokeOnMainThreadAsync(() =>
+			{
+				// This reads DisplayInfo, so it needs main thread
+				window = new Window(nextPage);
+			});
 
 			await CreateHandlerAndAddToWindow<IWindowHandler>(window, async (handler) =>
 			{

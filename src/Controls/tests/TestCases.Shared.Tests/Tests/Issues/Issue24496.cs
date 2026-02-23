@@ -1,4 +1,4 @@
-#if IOS
+#if IOS //This test case verifies that the sample is working exclusively on IOS platforms "due to use of UIKit APIs".
 using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
@@ -21,7 +21,7 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 			App.Tap("Picker6");
             VerifyScreenshot(TestContext.CurrentContext.Test.MethodName + "_Picker6");
             App.Tap("Entry7");
-            VerifyScreenshot(TestContext.CurrentContext.Test.MethodName + "_Entry7");
+            VerifyScreenshot(TestContext.CurrentContext.Test.MethodName + "_Entry7", cropBottom: 1000);
         }
     }
 }

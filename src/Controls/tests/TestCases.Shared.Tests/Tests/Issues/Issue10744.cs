@@ -1,5 +1,4 @@
-﻿#if ANDROID
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -15,12 +14,10 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 		[Test]
 		[Category(UITestCategories.WebView)]
-		[Category(UITestCategories.Compatibility)]
-		[FailsOnAndroidWhenRunningOnXamarinUITest]
 		public void WebViewEvalCrashesOnAndroidWithLongString()
 		{
+			VerifyInternetConnectivity();
 			App.WaitForElement("navigatedLabel");
 		}
 	}
 }
-#endif

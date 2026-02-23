@@ -1,12 +1,10 @@
-﻿#if WINDOWS
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
 namespace Microsoft.Maui.TestCases.Tests.Issues
 {
 	[Category(UITestCategories.Editor)]
-	[Category(UITestCategories.CustomRenderers)]
 	public class Issue25684 : _IssuesUITest
 	{
 		public Issue25684(TestDevice device) : base(device) { }
@@ -21,4 +19,3 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		}
 	}
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if ANDROID || IOS || WINDOWS
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using UITest.Appium;
 using UITest.Core;
@@ -11,6 +10,8 @@ namespace Microsoft.Maui.TestCases.Tests
 	{
 		public const string StepperGallery = "Stepper Gallery";
 
+		public override string GalleryPageName => StepperGallery;
+		
 		public StepperUITests(TestDevice device)
 			: base(device)
 		{
@@ -22,7 +23,6 @@ namespace Microsoft.Maui.TestCases.Tests
 		}
 
 		[Test]
-		[Category(UITestCategories.Stepper)]
 		[Description("Increase the Stepper value")]
 		public void IncreaseStepper()
 		{
@@ -38,7 +38,6 @@ namespace Microsoft.Maui.TestCases.Tests
 
 			// 2. Increase the value.
 			App.IncreaseStepper(stepperAutomationId);
-			App.Screenshot("Increase the Stepper value");
 
 			// 3. Verify that the value has increased.
 			var step3Value = App.FindElement(valueAutomationId).GetText();
@@ -46,7 +45,6 @@ namespace Microsoft.Maui.TestCases.Tests
 		}
 
 		[Test]
-		[Category(UITestCategories.Stepper)]
 		[Description("Decrease the Stepper value")]
 		public void DecreaseStepper()
 		{
@@ -62,7 +60,6 @@ namespace Microsoft.Maui.TestCases.Tests
 
 			// 2. Increase the value.
 			App.IncreaseStepper(stepperAutomationId);
-			App.Screenshot("Increase the Stepper value");
 
 			// 3. Verify that the value has increased.
 			var step3Value = App.FindElement(valueAutomationId).GetText();
@@ -70,7 +67,6 @@ namespace Microsoft.Maui.TestCases.Tests
 
 			// 4. Decrease the value.
 			App.DecreaseStepper(stepperAutomationId);
-			App.Screenshot("Decrease the Stepper value");
 
 			// 5. Verify that the value has decreased.
 			var step5Value = App.FindElement(valueAutomationId).GetText();
@@ -78,4 +74,3 @@ namespace Microsoft.Maui.TestCases.Tests
 		}
 	}
 }
-#endif

@@ -11,11 +11,13 @@ namespace UITest.Appium
 			: base(new MacDriver(remoteAddress, GetOptions(config)), config)
 		{
 			_commandExecutor.AddCommandGroup(new AppiumAppleContextMenuActions(this));
+			_commandExecutor.AddCommandGroup(new AppiumAppleStepperActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystMouseActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystTouchActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystAlertActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystSpecificActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystSwipeActions(this));
+			_commandExecutor.AddCommandGroup(new AppiumCatalystThemeChangeAction());
 			_commandExecutor.AddCommandGroup(new AppiumCatalystVirtualKeyboardActions(this));
 			_commandExecutor.AddCommandGroup(new AppiumCatalystScrollActions(this));
 		}
@@ -63,6 +65,12 @@ namespace UITest.Appium
 				options.AddAdditionalAppiumOption(IOSMobileCapabilityType.BundleId, appId);
 			}
 
+			var args = config.GetProperty<Dictionary<string, string>>("TestConfigurationArgs");
+			if(args is not null && args.Count > 0)
+			{
+				options.AddAdditionalAppiumOption("environment", args);
+			}
+			
 			options.AddAdditionalAppiumOption("showServerLogs", true);
 			return options;
 		}

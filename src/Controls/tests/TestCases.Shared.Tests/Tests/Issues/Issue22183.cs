@@ -1,17 +1,17 @@
-﻿#if IOS
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
 namespace Microsoft.Maui.TestCases.Tests.Issues
 {
-    public class Issue22183: _IssuesUITest
+	public class Issue22183 : _IssuesUITest
 	{
 		public Issue22183(TestDevice device) : base(device)
 		{
 		}
 
 		public override string Issue => "RadioButton with value cannot display selected state correctly";
+
 
 		[Test]
 		[Category(UITestCategories.RadioButton)]
@@ -29,4 +29,3 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		}
 	}
 }
-#endif

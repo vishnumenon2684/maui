@@ -50,13 +50,13 @@ namespace Microsoft.Maui.Handlers
 		public static void MapVisibility(ISwipeItemViewHandler handler, ISwipeItemView view)
 		{
 			var swipeView = handler.PlatformView?.Parent.GetParentOfType<MauiSwipeView>();
-			if (swipeView != null)
-				swipeView.UpdateIsVisibleSwipeItem(view);
+			swipeView?.UpdateIsVisibleSwipeItem(view);
 		}
 
 		protected override void DisconnectHandler(ContentViewGroup platformView)
 		{
 			// If we're being disconnected from the xplat element, then we should no longer be managing its children
+			platformView.CrossPlatformLayout = null;
 			platformView.RemoveAllViews();
 			base.DisconnectHandler(platformView);
 		}

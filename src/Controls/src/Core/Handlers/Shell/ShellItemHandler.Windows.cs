@@ -77,6 +77,11 @@ namespace Microsoft.Maui.Controls.Handlers
 
 			if (mauiNavView is not null)
 				mauiNavView.SelectionChanged += OnNavigationTabChanged;
+
+			if (VirtualView.Parent is Shell shell)
+			{
+				shell.Navigated += OnShellNavigated;
+			}
 		}
 
 		protected override void DisconnectHandler(FrameworkElement platformView)
@@ -84,7 +89,17 @@ namespace Microsoft.Maui.Controls.Handlers
 			base.DisconnectHandler(platformView);
 
 			if (platformView is MauiNavigationView mnv)
+			{
 				mnv.SelectionChanged -= OnNavigationTabChanged;
+				if (mnv.AutoSuggestBox is { } autoSuggestBox)
+				{
+					autoSuggestBox.TextChanged -= OnSearchBoxTextChanged;
+					autoSuggestBox.QuerySubmitted -= OnSearchBoxQuerySubmitted;
+					autoSuggestBox.SuggestionChosen -= OnSearchBoxSuggestionChosen;
+					autoSuggestBox.GotFocus -= OnSearchBoxGotFocus;
+					autoSuggestBox.LostFocus -= OnSearchBoxLostFocus;
+				}
+			}
 
 			platformView.Loaded -= OnNavigationViewLoaded;
 
@@ -101,6 +116,11 @@ namespace Microsoft.Maui.Controls.Handlers
 
 			if (_shellItem is IShellItemController shellItemController)
 				shellItemController.ItemsCollectionChanged -= OnItemsChanged;
+
+			if (VirtualView.Parent is Shell shell)
+			{
+				shell.Navigated -= OnShellNavigated;
+			}
 		}
 
 		public override void SetVirtualView(Maui.IElement view)
@@ -127,6 +147,11 @@ namespace Microsoft.Maui.Controls.Handlers
 			{
 				base.SetVirtualView(view);
 			}
+		}
+
+		void OnShellNavigated(object? sender, ShellNavigatedEventArgs e)
+		{
+			UpdateSearchHandler();
 		}
 
 		private void OnItemsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -159,9 +184,15 @@ namespace Microsoft.Maui.Controls.Handlers
 
 				((Shell)VirtualView.Parent).CurrentItem = shellSection;
 			}
-			else if (selectedItem.Data is ShellContent shellContent)
+			else if (selectedItem.Data is ShellContent shellContent && VirtualView.Parent is Shell parentShell)
 			{
-				((Shell)VirtualView.Parent).CurrentItem = shellContent;
+				// We need to invoke ProposeSection for TabBar items navigation for ShellContent
+				var currentItem = parentShell.CurrentItem?.CurrentItem;
+				if (currentItem?.Title != shellContent.Title && currentItem != shellContent.Parent)
+				{
+					(parentShell.CurrentItem as IShellItemController)?.ProposeSection(shellContent);
+				}
+				parentShell.CurrentItem = shellContent;
 			}
 		}
 
@@ -275,6 +306,8 @@ namespace Microsoft.Maui.Controls.Handlers
 						autoSuggestBox.TextChanged += OnSearchBoxTextChanged;
 						autoSuggestBox.QuerySubmitted += OnSearchBoxQuerySubmitted;
 						autoSuggestBox.SuggestionChosen += OnSearchBoxSuggestionChosen;
+						autoSuggestBox.GotFocus += OnSearchBoxGotFocus;
+						autoSuggestBox.LostFocus += OnSearchBoxLostFocus;
 						mauiNavView.AutoSuggestBox = autoSuggestBox;
 					}
 
@@ -308,6 +341,16 @@ namespace Microsoft.Maui.Controls.Handlers
 					autoSuggestBox.Visibility = UI.Xaml.Visibility.Collapsed;
 				}
 			}
+		}
+
+		void OnSearchBoxGotFocus(object sender, RoutedEventArgs e)
+		{
+			_currentSearchHandler?.SetIsFocused(true);
+		}
+
+		void OnSearchBoxLostFocus(object sender, RoutedEventArgs e)
+		{
+			_currentSearchHandler?.SetIsFocused(false);
 		}
 
 		void OnSearchBoxTextChanged(Microsoft.UI.Xaml.Controls.AutoSuggestBox sender, Microsoft.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs args)

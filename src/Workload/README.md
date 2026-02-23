@@ -19,7 +19,6 @@ The idea, is a project to be able to set `$(UseMaui)`:
 * `Microsoft.NET.Sdk.Maui` - workload manifest
 * `Microsoft.Maui.Sdk` - workload SDK
 * `Microsoft.Maui.Controls` - nuget
-* `Microsoft.Maui.Controls.Compatibility` - nuget
 * `Microsoft.Maui.Templates` - nuget
 
 `BlazorWebView` is an addition to MAUI, project can currently opt into
@@ -121,8 +120,15 @@ assemblies at build & runtime.
 
 After you've done a build, such as:
 
-```dotnetcli
-$ dotnet cake
+```bash
+# Restore .NET SDK and workloads, then pack
+./build.sh -restore -pack
+```
+
+or on Windows:
+
+```cmd
+.\build.cmd -restore -pack
 ```
 
 You'll have various `artifacts/*.nupkg` files produced, as well as the
@@ -134,7 +140,7 @@ declared:
 
 ```dotnetcli
 $ git clean -dxf src/Controls/samples/
-$ ./bin/dotnet/dotnet build Microsoft.Maui.Samples.slnf -p:UseWorkload=true
+$ ./bin/dotnet/dotnet build ./eng/Microsoft.Maui.Samples.slnf -p:UseWorkload=true
 ```
 
 ### Install System-Wide
@@ -177,7 +183,7 @@ $ ./bin/dotnet/dotnet build src/DotNet/DotNet.csproj -t:Install
 Then we can build samples with `-p:UseWorkload=true`:
 
 ```dotnetcli
-$ ./bin/dotnet/dotnet build Microsoft.Maui.Samples.slnf -p:UseWorkload=true
+$ ./bin/dotnet/dotnet build ./eng/Microsoft.Maui.Samples.slnf -p:UseWorkload=true
 ```
 
 ## Cleanup .NET 6 installs & workloads

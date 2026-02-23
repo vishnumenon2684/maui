@@ -1,5 +1,4 @@
-﻿#if IOS
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -15,7 +14,8 @@ public class Issue20294 : _IssuesUITest
 	[Category(UITestCategories.CollectionView)]
 	public void ScrollToEndDoesntCrash()
 	{
-		App.ScrollTo("FOOTER");
+		App.WaitForElement("ScrollToFooterButton");
+		App.Tap("ScrollToFooterButton");
 		App.ScrollUp("theCollectionView", ScrollStrategy.Gesture, 0.5);
 		App.ScrollDown("theCollectionView", ScrollStrategy.Gesture, 0.5);
 		App.ScrollDown("theCollectionView", ScrollStrategy.Gesture, 0.5);
@@ -23,4 +23,3 @@ public class Issue20294 : _IssuesUITest
 		App.ScrollDown("theCollectionView", ScrollStrategy.Gesture, 0.5);
 	}
 }
-#endif

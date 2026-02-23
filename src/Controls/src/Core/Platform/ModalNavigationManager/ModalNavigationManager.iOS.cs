@@ -132,7 +132,7 @@ namespace Microsoft.Maui.Controls.Platform
 				{
 					var topPage = _platformModalPages[_platformModalPages.Count - 2];
 					var controller = (topPage?.Handler as IPlatformViewHandler)?.ViewController;
-					if (controller is not null)
+					if (controller?.ViewIfLoaded?.Window is not null)
 					{
 						await controller.PresentViewControllerAsync(wrapper, animated);
 						await Task.Delay(5);
@@ -147,13 +147,14 @@ namespace Microsoft.Maui.Controls.Platform
 				if (WindowViewController is not null)
 				{
 					// This is branched, because if the modal is a popover and can't display correctly for some reason, we want it to fail
-					if (wrapper.ModalPresentationStyle == UIKit.UIModalPresentationStyle.Popover){
-						if(wrapper.PopoverPresentationController is not null && WindowViewController.View is not null)
+					if (wrapper.ModalPresentationStyle == UIKit.UIModalPresentationStyle.Popover)
+					{
+						if (wrapper.PopoverPresentationController is not null && WindowViewController.View is not null)
 						{
-								await WindowViewController.PresentViewControllerAsync(wrapper, animated);
-								await Task.Delay(5);
+							await WindowViewController.PresentViewControllerAsync(wrapper, animated);
+							await Task.Delay(5);
 						}
-						else 
+						else
 						{
 							failed = true;
 						}

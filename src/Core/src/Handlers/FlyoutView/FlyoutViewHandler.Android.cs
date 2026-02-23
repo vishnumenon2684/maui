@@ -4,6 +4,8 @@ using Android.App.Roles;
 using Android.Runtime;
 using Android.Views;
 using AndroidX.AppCompat.Widget;
+using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Fragment.App;
 using AndroidX.Lifecycle;
@@ -118,24 +120,13 @@ namespace Microsoft.Maui.Handlers
 		void UpdateFlyout()
 		{
 			_ = MauiContext ?? throw new InvalidOperationException($"{nameof(MauiContext)} should have been set by base class.");
-
-			// Once this issue has been taken care of
-			// https://github.com/dotnet/maui/issues/8456
-			// we can remove this code
-			if (VirtualView.Flyout.Handler?.MauiContext != null &&
-				VirtualView.Flyout.Handler.MauiContext != MauiContext)
-			{
-				VirtualView.Flyout.Handler.DisconnectHandler();
-			}
-
 			_ = VirtualView.Flyout.ToPlatform(MauiContext);
 
 			var newFlyoutView = VirtualView.Flyout.ToPlatform();
 			if (_flyoutView == newFlyoutView)
 				return;
 
-			if (_flyoutView != null)
-				_flyoutView.RemoveFromParent();
+			_flyoutView?.RemoveFromParent();
 
 			_flyoutView = newFlyoutView;
 			if (_flyoutView == null)
@@ -294,6 +285,13 @@ namespace Microsoft.Maui.Handlers
 
 		protected override void ConnectHandler(View platformView)
 		{
+			MauiWindowInsetListener.RegisterParentForChildViews(platformView);
+
+			if (_navigationRoot is CoordinatorLayout cl)
+			{
+				MauiWindowInsetListener.SetupViewWithLocalListener(cl);
+			}
+
 			if (platformView is DrawerLayout dl)
 			{
 				dl.DrawerStateChanged += OnDrawerStateChanged;
@@ -303,6 +301,13 @@ namespace Microsoft.Maui.Handlers
 
 		protected override void DisconnectHandler(View platformView)
 		{
+			MauiWindowInsetListener.UnregisterView(platformView);
+			if (_navigationRoot is CoordinatorLayout cl)
+			{
+				MauiWindowInsetListener.UnregisterView(cl);
+				_navigationRoot = null;
+			}
+
 			if (platformView is DrawerLayout dl)
 			{
 				dl.DrawerStateChanged -= OnDrawerStateChanged;

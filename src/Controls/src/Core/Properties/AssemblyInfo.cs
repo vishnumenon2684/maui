@@ -4,6 +4,8 @@ using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.StyleSheets;
 using Compatibility = Microsoft.Maui.Controls.Compatibility;
 
+[assembly: InternalsVisibleTo("Microsoft.AspNetCore.Components.WebView.Maui")]
+
 [assembly: InternalsVisibleTo("iOSUnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Compatibility")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Compatibility.Android")]
@@ -12,6 +14,7 @@ using Compatibility = Microsoft.Maui.Controls.Compatibility;
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Compatibility.Tizen")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Core.Design")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Core.UnitTests")]
+[assembly: InternalsVisibleTo("Microsoft.Maui.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Android.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Compatibility.Android.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Maui.Controls.Compatibility.UAP.UnitTests")]
@@ -54,7 +57,6 @@ using Compatibility = Microsoft.Maui.Controls.Compatibility;
 [assembly: InternalsVisibleTo("CommunityToolkit.Maui.UnitTests")]
 [assembly: InternalsVisibleTo("CommunityToolkit.Maui.Markup")]
 [assembly: InternalsVisibleTo("CommunityToolkit.Maui.Markup.UnitTests")]
-[assembly: InternalsVisibleTo("Controls.TestCases.HostApp")]
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
@@ -79,6 +81,7 @@ using Compatibility = Microsoft.Maui.Controls.Compatibility;
 
 [assembly: XmlnsPrefix("http://schemas.microsoft.com/dotnet/2021/maui", "maui")]
 [assembly: XmlnsPrefix("http://schemas.microsoft.com/dotnet/2021/maui/design", "d")]
+[assembly: XmlnsPrefix("http://schemas.microsoft.com/winfx/2009/xaml", "x")]
 
 [assembly: StyleProperty("background-color", typeof(VisualElement), nameof(VisualElement.BackgroundColorProperty))]
 [assembly: StyleProperty("background", typeof(VisualElement), nameof(VisualElement.BackgroundProperty))]
@@ -128,7 +131,7 @@ using Compatibility = Microsoft.Maui.Controls.Compatibility;
 [assembly: StyleProperty("visibility", typeof(VisualElement), nameof(VisualElement.IsVisibleProperty), Inherited = true)]
 [assembly: StyleProperty("width", typeof(VisualElement), nameof(VisualElement.WidthRequestProperty))]
 [assembly: StyleProperty("letter-spacing", typeof(ITextElement), nameof(TextElement.CharacterSpacingProperty), Inherited = true)]
-[assembly: StyleProperty("line-height", typeof(ILineHeightElement), nameof(LineHeightElement.LineHeightProperty), Inherited = true)]
+[assembly: StyleProperty("line-height", typeof(Microsoft.Maui.Controls.ILineHeightElement), nameof(LineHeightElement.LineHeightProperty), Inherited = true)]
 
 //flex
 [assembly: StyleProperty("align-content", typeof(FlexLayout), nameof(FlexLayout.AlignContentProperty))]
@@ -161,6 +164,8 @@ using Compatibility = Microsoft.Maui.Controls.Compatibility;
 [assembly: StyleProperty("-maui-visual", typeof(VisualElement), nameof(VisualElement.VisualProperty))]
 [assembly: StyleProperty("-maui-vertical-text-alignment", typeof(Label), nameof(TextAlignmentElement.VerticalTextAlignmentProperty))]
 [assembly: StyleProperty("-maui-thumb-color", typeof(Switch), nameof(Switch.ThumbColorProperty))]
+
+[assembly: StyleProperty("-maui-shadow", typeof(VisualElement), nameof(VisualElement.ShadowProperty))]
 
 //shell
 [assembly: StyleProperty("-maui-flyout-background", typeof(Shell), nameof(Shell.FlyoutBackgroundColorProperty))]

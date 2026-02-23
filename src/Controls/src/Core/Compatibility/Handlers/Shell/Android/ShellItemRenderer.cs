@@ -54,7 +54,6 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		IShellBottomNavViewAppearanceTracker _appearanceTracker;
 		BottomNavigationViewTracker _bottomNavigationTracker;
 		BottomSheetDialog _bottomSheetDialog;
-		bool _disposed;
 		bool _menuSetup;
 		ShellAppearance _shellAppearance;
 		bool _appearanceSet;
@@ -126,18 +125,6 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		}
 
-		protected override void Dispose(bool disposing)
-		{
-			if (_disposed)
-				return;
-
-			_disposed = true;
-			if (disposing)
-				Destroy();
-
-			base.Dispose(disposing);
-		}
-
 		// Use OnDestory become OnDestroyView may fire before events are completed.
 		public override void OnDestroy()
 		{
@@ -160,6 +147,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		protected virtual bool ChangeSection(ShellSection shellSection)
 		{
+			// Update shell appearance based on the new shell section when switching between tabs
+			((IShellController)ShellContext.Shell).AppearanceChanged(shellSection, false);
 			return ((IShellItemController)ShellItem).ProposeSection(shellSection);
 		}
 

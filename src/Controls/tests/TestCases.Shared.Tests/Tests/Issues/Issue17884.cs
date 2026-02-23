@@ -1,5 +1,4 @@
-﻿#if ANDROID
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -14,7 +13,7 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		public override string Issue => "[Android] Entire words omitted & letters truncated from Label display";
 
 		[Test]
-		[Category(UITestCategories.Visual)]
+		[Category(UITestCategories.Label)]
 		public void VerifyTextIsNotMissing()
 		{
 			App.WaitForElement("StubLabel");
@@ -22,4 +21,3 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		}
 	}
 }
-#endif

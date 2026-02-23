@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿#if TEST_FAILS_ON_WINDOWS // Related issue for windows: https://github.com/dotnet/maui/issues/24482
+using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -9,6 +10,7 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		readonly string _carouselAutomationId = "carouselView";
 		readonly string _btnRemoveAutomationId = "btnRemove";
 		readonly string _btnRemoveAllAutomationId = "btnRemoveAll";
+		readonly string _btnSwipeAutomationId = "btnSwipe";
 
 		protected override bool ResetAfterEachTest => true;
 		public CarouselViewLoopNoFreeze(TestDevice device)
@@ -21,46 +23,44 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		// Issue12574 (src\ControlGallery\src\Issues.Shared\Issue12574.cs
 		[Test]
 		[Category(UITestCategories.CarouselView)]
-		[FailsOnMacWhenRunningOnXamarinUITest("DragCoordinates methods not implemented")]
-		[FailsOnWindowsWhenRunningOnXamarinUITest("DragCoordinates methods not implemented")]
-		[FailsOnAndroidWhenRunningOnXamarinUITest("This test is failing, likely due to product issue")]
+		[FailsOnWindowsWhenRunningOnXamarinUITest("https://github.com/dotnet/maui/issues/24482")]
 		public void Issue12574Test()
 		{
-			App.WaitForElement("0 item");
+			// Use longer timeout for CarouselView items which can be slow to appear on CI
+			App.WaitForElement("0 item", timeout: TimeSpan.FromSeconds(30));
 
-			var rect = App.FindElement(_carouselAutomationId).GetRect();
-			var centerX = rect.CenterX();
-			var rightX = rect.X - 5;
-			App.DragCoordinates(centerX + 40, rect.CenterY(), rightX, rect.CenterY());
+			App.WaitForElement(_carouselAutomationId);
+			App.WaitForElement(_btnSwipeAutomationId);
+			App.Tap(_btnSwipeAutomationId);
 
-			App.WaitForElement("1 item");
+			App.WaitForElement("1 item", timeout: TimeSpan.FromSeconds(10));
+			App.Tap(_btnSwipeAutomationId);
 
-			App.DragCoordinates(centerX + 40, rect.CenterY(), rightX, rect.CenterY());
 
-			App.WaitForElement("2 item");
+			App.WaitForElement("2 item", timeout: TimeSpan.FromSeconds(10));
+			App.WaitForElement(_btnRemoveAutomationId);
+			App.Tap(_btnRemoveAutomationId);
 
-			App.Click(_btnRemoveAutomationId);
+			App.WaitForElement("1 item", timeout: TimeSpan.FromSeconds(10));
 
-			App.WaitForElement("1 item");
+			App.Tap(_btnSwipeAutomationId);
 
-			rightX = rect.X + rect.Width - 1;
-			App.DragCoordinates(rect.X, rect.CenterY(), rightX, rect.CenterY());
-
-			App.WaitForElement("0 item");
+			App.WaitForElement("0 item", timeout: TimeSpan.FromSeconds(10));
 		}
 
 		[Test]
 		[Category(UITestCategories.CarouselView)]
-		[FailsOnWindowsWhenRunningOnXamarinUITest("This test is failing, likely due to product issu")]
-		[FailsOnAndroidWhenRunningOnXamarinUITest("This test is failing, likely due to product issu")]
+		[FailsOnWindowsWhenRunningOnXamarinUITest("https://github.com/dotnet/maui/issues/24482")]
 		public void RemoveItemsQuickly()
 		{
-			App.WaitForElement("0 item");
+			// Use longer timeout for CarouselView items which can be slow to appear on CI
+			App.WaitForElement("0 item", timeout: TimeSpan.FromSeconds(30));
 
 			App.Click(_btnRemoveAllAutomationId);
 
 			// If we haven't crashed, then the other button should be here
-			App.WaitForElement(_btnRemoveAutomationId);
+			App.WaitForElement(_btnRemoveAutomationId, timeout: TimeSpan.FromSeconds(10));
 		}
 	}
 }
+#endif

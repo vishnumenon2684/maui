@@ -49,7 +49,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 				var transform = span.TextTransform != TextTransform.Default ? span.TextTransform : defaultTextTransform;
 
-				var text = TextTransformUtilites.GetTransformedText(span.Text, transform);
+				var text = TextTransformUtilities.GetTransformedText(span.Text, transform);
 				if (text == null)
 					continue;
 
@@ -95,7 +95,7 @@ namespace Microsoft.Maui.Controls.Platform
 				if (font.IsDefault && defaultFont.HasValue)
 					font = defaultFont.Value;
 				if (!font.IsDefault)
-					spannable.SetSpan(new PlatformFontSpan(context ?? AAplication.Context, font.ToTypeface(fontManager), font.AutoScalingEnabled, (float)font.Size), start, end, SpanTypes.InclusiveInclusive);
+					spannable.SetSpan(new PlatformFontSpan(context ?? AAplication.Context, font.ToTypeface(fontManager), font.AutoScalingEnabled, (float)fontManager.GetFontSize(font).Value), start, end, SpanTypes.InclusiveInclusive);
 
 				// TextDecorations
 				var textDecorations = span.IsSet(Span.TextDecorationsProperty)

@@ -207,8 +207,6 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 				Id = AView.GenerateViewId(),
 			};
 
-			_frameLayout.SetFitsSystemWindows(true);
-
 			_flyoutView.AttachFlyout(this, _frameLayout);
 
 			((IShellController)shell).AddAppearanceObserver(this, shell);
@@ -235,8 +233,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			// Don't force the commit if this is our first load 
 			if (previousView == null)
 			{
-				transaction
-					.SetReorderingAllowedEx(true);
+				transaction.SetReorderingAllowedEx(true);
 			}
 
 			transaction.CommitAllowingStateLossEx();
@@ -245,7 +242,6 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			{
 				previousView.Destroyed -= OnDestroyed;
 
-				previousView.Dispose();
 				previousView = null;
 			}
 

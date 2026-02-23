@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
+using CoreFoundation;
 using Foundation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Platform;
+using ObjCRuntime;
 using UIKit;
 using WebKit;
 
@@ -80,7 +83,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			var messageJSStringLiteral = JavaScriptEncoder.Default.Encode(message);
 			_webview.EvaluateJavaScript(
 				javascript: $"__dispatchMessageCallback(\"{messageJSStringLiteral}\")",
-				completionHandler: (NSObject result, NSError error) => { });
+				completionHandler: (NSObject? result, NSError? error) => { });
 		}
 
 		internal void MessageReceivedInternal(Uri uri, string message)
@@ -105,7 +108,6 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				_webView = webView ?? throw new ArgumentNullException(nameof(webView));
 			}
 
-
 			public override void RunJavaScriptAlertPanel(WKWebView webView, string message, WKFrameInfo frame, Action completionHandler)
 			{
 				PresentAlertController(
@@ -125,15 +127,22 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				);
 			}
 
-			public override void RunJavaScriptTextInputPanel(
-				WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame, Action<string> completionHandler)
+			// TODO: this should be an override but requires XAMCORE_5_0: https://github.com/dotnet/macios/issues/15728
+			[Export("webView:runJavaScriptTextInputPanelWithPrompt:defaultText:initiatedByFrame:completionHandler:")]
+			public void RunJavaScriptTextInputPanelWithPrompt(
+				WKWebView webView,
+				string prompt,
+				string? defaultText,
+				WKFrameInfo frame,
+				IntPtr completionHandlerBlock)
 			{
+				var completionHandler = ActionStringTrampolineBlock.Create(completionHandlerBlock);
 				PresentAlertController(
 					webView,
 					prompt,
 					defaultText: defaultText,
-					okAction: x => completionHandler(x.TextFields[0].Text!),
-					cancelAction: _ => completionHandler(null!)
+					okAction: x => completionHandler?.Invoke(x.TextFields[0].Text),
+					cancelAction: _ => completionHandler?.Invoke(null)
 				);
 			}
 
@@ -181,10 +190,8 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				if (cancelAction != null)
 					AddCancelAction(controller, () => cancelAction(controller));
 
-#pragma warning disable CA1416, CA1422 // TODO:  'UIApplication.Windows' is unsupported on: 'ios' 15.0 and later
-				GetTopViewController(UIApplication.SharedApplication.Windows.FirstOrDefault(m => m.IsKeyWindow)?.RootViewController)?
+				GetTopViewController(UIApplication.SharedApplication.GetKeyWindow()?.RootViewController)?
 					.PresentViewController(controller, true, null);
-#pragma warning restore CA1416, CA1422
 			}
 
 			private static UIViewController? GetTopViewController(UIViewController? viewController)
@@ -199,6 +206,43 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 					return GetTopViewController(viewController.PresentedViewController);
 
 				return viewController;
+			}
+
+			// TODO: Remove after XAMCORE_5_0 is live: 
+			//       https://github.com/dotnet/macios/issues/15728
+			//       https://github.com/dotnet/macios/pull/22199
+			sealed class ActionStringTrampolineBlock : TrampolineBlockBase
+			{
+				[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+				[UserDelegateType(typeof(Action<string?>))]
+				delegate void Invoker(IntPtr block, NativeHandle obj);
+
+				Invoker invoker;
+
+				public unsafe ActionStringTrampolineBlock(BlockLiteral* block)
+					: base(block)
+				{
+					invoker = block->GetDelegateForBlock<Invoker>();
+				}
+
+				[Preserve(Conditional = true)]
+				public unsafe static Action<string?>? Create(IntPtr block)
+				{
+					if (block == IntPtr.Zero)
+					{
+						return null;
+					}
+
+					var del = (Action<string?>)GetExistingManagedDelegate(block);
+					return del ?? new ActionStringTrampolineBlock((BlockLiteral*)block).Invoke;
+				}
+
+				void Invoke(string? obj)
+				{
+					var nsobj = CFString.CreateNative(obj);
+					invoker(BlockPointer, nsobj);
+					CFString.ReleaseNative(nsobj);
+				}
 			}
 		}
 
@@ -246,9 +290,13 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				{
 					_webView.Logger.LaunchExternalBrowser(uri);
 
-#pragma warning disable CA1416, CA1422 // TODO: OpenUrl(...) has [UnsupportedOSPlatform("ios10.0")]
-					UIApplication.SharedApplication.OpenUrl(requestUrl);
-#pragma warning restore CA1416, CA1422
+					UIApplication.SharedApplication.OpenUrl(requestUrl, new UIApplicationOpenUrlOptions(), (success) =>
+					{
+						if (!success)
+						{
+							_webView.Logger.LogError($"There was an error trying to open URL: {requestUrl}");
+						}
+					});
 				}
 
 				if (strategy != UrlLoadingStrategy.OpenInWebView)

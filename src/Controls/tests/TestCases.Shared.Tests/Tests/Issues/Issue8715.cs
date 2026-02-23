@@ -1,4 +1,3 @@
-﻿#if IOS
 using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
@@ -15,19 +14,21 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 		[Test]
 		[Category(UITestCategories.CollectionView)]
-		[Category(UITestCategories.Shell)]
-		[Category(UITestCategories.Compatibility)]
 		public void ReappearingCollectionViewShouldNotThrowNRE()
 		{
-			App.Tap(FlyoutIconAutomationId);
+			App.WaitForElement("8715 About");
+			App.TapShellFlyoutIcon();
+			App.WaitForElement("CollectionView");
 			App.Tap("CollectionView");
 			App.Tap("Toggle");
+			App.WaitForElement("Toggle");
 			App.Tap("Toggle");
-			App.Tap(FlyoutIconAutomationId);
+			App.TapShellFlyoutIcon();
 			App.Tap("About");
-			App.Tap(FlyoutIconAutomationId);
+			App.WaitForElement("8715 About");
+			App.TapShellFlyoutIcon();
+			App.WaitForElement("CollectionView");
 			App.Tap("CollectionView");
 		}
 	}
 }
-#endif

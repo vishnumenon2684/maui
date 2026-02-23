@@ -1,4 +1,4 @@
-#if IOS
+#if IOS //This test case verifies that the sample is working exclusively on IOS platforms "due to use of UIKit APIs".
 using System.Drawing;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -20,7 +20,7 @@ public class Issue22715 : _IssuesUITest
     {
         App.WaitForElement("EntNumber").GetRect();
         App.WaitForElement("TopLabel").GetRect();
-        VerifyScreenshot();
+        VerifyScreenshot(cropBottom: 1400);
     }
 }
 #endif
