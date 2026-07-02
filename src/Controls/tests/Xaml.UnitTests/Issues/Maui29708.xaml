@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Microsoft.Maui.Controls.Xaml.UnitTests.Maui29708"
+             Title="Maui29708">
+    <VerticalStackLayout>
+        <CustomLabel x:Name="customLabel" Text="Hello" Subtitle="World" />
+    </VerticalStackLayout>
+</ContentPage>

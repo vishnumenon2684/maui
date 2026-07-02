@@ -10,6 +10,7 @@ using System.Xml;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Maui.Controls.Xaml;
@@ -253,6 +254,33 @@ static class GeneratorHelpers
 					var xmlnsPrefix = new XmlnsPrefixAttribute(attr.ConstructorArguments[0].Value as string, attr.ConstructorArguments[1].Value as string);
 					xmlnsPrefixes.Add(xmlnsPrefix);
 				}
+			}
+		}
+
+		// Auto-generate XmlnsDefinition for each C# global using in the current assembly (issue #29708)
+		foreach (var tree in compilation.SyntaxTrees)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			var root = tree.GetRoot(cancellationToken);
+			foreach (var usingDirective in root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+			{
+				if (!usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
+					continue;
+
+				// Skip using aliases (global using X = Y) and static usings (global using static X)
+				if (usingDirective.Alias is not null || usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+					continue;
+
+				var namespaceName = usingDirective.Name?.ToString();
+				if (string.IsNullOrEmpty(namespaceName))
+					continue;
+
+				var xmlnsDef = new XmlnsDefinitionAttribute(XamlParser.MauiGlobalUri, namespaceName!)
+				{
+					AssemblyName = compilation.Assembly.Name
+				};
+				xmlnsDefinitions.Add(xmlnsDef);
 			}
 		}
 
