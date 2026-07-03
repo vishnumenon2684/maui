@@ -262,8 +262,10 @@ static class GeneratorHelpers
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var root = tree.GetRoot(cancellationToken);
-			foreach (var usingDirective in root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+			// Use CompilationUnitSyntax.Usings to access top-level using directives directly,
+			// avoiding a full DescendantNodes() walk through the entire syntax tree.
+			var compilationUnit = (CompilationUnitSyntax)tree.GetRoot(cancellationToken);
+			foreach (var usingDirective in compilationUnit.Usings)
 			{
 				if (!usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
 					continue;
