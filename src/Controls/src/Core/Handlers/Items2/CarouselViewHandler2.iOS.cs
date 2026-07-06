@@ -52,6 +52,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				return;
 			}
 
+			// Track the animation target so intermediate positions emitted by iOS 26
+			// during ScrollToItem are suppressed in CarouselViewController2.SetPosition (#34965).
+			if (args.IsAnimated && carouselViewController2._gotoPosition == -1)
+				carouselViewController2._gotoPosition = args.Index;
+
 			if (VirtualView?.Loop == true)
 			{
 				var goToIndexPath = carouselViewController2.GetScrollToIndexPath(args.Index);

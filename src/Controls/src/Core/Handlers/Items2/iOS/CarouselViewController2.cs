@@ -22,6 +22,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		CarouselViewLoopManager _carouselViewLoopManager;
 		CancellationTokenSource _scrollDebounce;
 
+		// Target of an in-flight programmatic animated scroll; -1 when none.
+		// iOS 26 fires the layout's VisibleItemsInvalidationHandler for every intermediate
+		// page during an animated ScrollToItem, so SetPosition must ignore those until
+		// the target is reached (issue #34965). Mirrors CV1's CarouselViewController.
+		internal int _gotoPosition = -1;
+
 		// We need to keep track of the old views to update the visual states
 		// if this is null we are not attached to the window
 		List<View> _oldViews;
@@ -482,6 +488,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 					return;
 				}
 
+				if (animate)
+					_gotoPosition = goToPosition;
+
 				CollectionView.ScrollToItem(goToIndexPath, uICollectionViewScrollPosition, animate);
 			}
 		}
@@ -508,6 +517,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			{
 				return;
 			}
+
+			// Reached the target of an in-flight programmatic scroll; ignore intermediates (#34965).
+			if (position == _gotoPosition)
+				_gotoPosition = -1;
+
+			if (_gotoPosition != -1)
+				return;
 
 			ItemsView.SetValueFromRenderer(CarouselView.PositionProperty, position);
 			SetCurrentItem(position);
