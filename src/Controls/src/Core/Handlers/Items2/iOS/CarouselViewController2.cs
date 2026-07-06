@@ -489,7 +489,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				}
 
 				if (animate)
+				{
 					_gotoPosition = goToPosition;
+				}
 
 				CollectionView.ScrollToItem(goToIndexPath, uICollectionViewScrollPosition, animate);
 			}
@@ -520,10 +522,14 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 			// Reached the target of an in-flight programmatic scroll; ignore intermediates (#34965).
 			if (position == _gotoPosition)
+			{
 				_gotoPosition = -1;
+			}
 
 			if (_gotoPosition != -1)
+			{
 				return;
+			}
 
 			ItemsView.SetValueFromRenderer(CarouselView.PositionProperty, position);
 			SetCurrentItem(position);
