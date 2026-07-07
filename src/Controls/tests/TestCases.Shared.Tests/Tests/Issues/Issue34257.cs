@@ -17,28 +17,37 @@ public class Issue34257 : _IssuesUITest
 	[Category(UITestCategories.CollectionView)]
 	public void UpdatingHorizontalSpacingShouldResizeBothColumns()
 	{
+		var collection = App.WaitForElement("TestCollectionView").GetRect();
 		var firstColumnBefore = App.WaitForElement("FirstColumnTopItem").GetRect();
+		var offsetBefore = firstColumnBefore.X - collection.X;
+
 		App.Tap("ApplyHorizontalSpacingButton");
 		App.WaitForElement("StatusLabel", "Spacing=0,80");
+
+		var collectionAfter = App.WaitForElement("TestCollectionView").GetRect();
 		var firstColumnAfter = App.WaitForElement("FirstColumnTopItem").GetRect();
-		Assert.That(firstColumnBefore.X, Is.Not.EqualTo(firstColumnAfter.X), $"Expected the first column to move");
+		var offsetAfter = firstColumnAfter.X - collectionAfter.X;
+
+		Assert.That(offsetAfter, Is.GreaterThan(offsetBefore),
+			"First column should have spacing to its left when horizontal spacing is applied");
 	}
 
 	[Test]
 	[Category(UITestCategories.CollectionView)]
 	public void UpdatingVerticalSpacingShouldResizeBothRows()
 	{
-		var firstColumnTopBefore = App.WaitForElement("FirstColumnTopItem").GetRect();
-		var firstColumnBottomBefore = App.WaitForElement("FirstColumnBottomItem").GetRect();
-		var rowGapBefore = firstColumnBottomBefore.Y - (firstColumnTopBefore.Y + firstColumnTopBefore.Height);
+		var collection = App.WaitForElement("TestCollectionView").GetRect();
+		var firstRowBefore = App.WaitForElement("FirstColumnTopItem").GetRect();
+		var offsetBefore = firstRowBefore.Y - collection.Y;
 
 		App.Tap("ApplyVerticalSpacingButton");
 		App.WaitForElement("StatusLabel", "Spacing=40,0");
 
-		var firstColumnTopAfter = App.WaitForElement("FirstColumnTopItem").GetRect();
-		var firstColumnBottomAfter = App.WaitForElement("FirstColumnBottomItem").GetRect();
-		var rowGapAfter = firstColumnBottomAfter.Y - (firstColumnTopAfter.Y + firstColumnTopAfter.Height);
+		var collectionAfter = App.WaitForElement("TestCollectionView").GetRect();
+		var firstRowAfter = App.WaitForElement("FirstColumnTopItem").GetRect();
+		var offsetAfter = firstRowAfter.Y - collectionAfter.Y;
 
-		Assert.That(rowGapAfter, Is.GreaterThan(rowGapBefore), $"Expected the gap between rows to increase");
+		Assert.That(offsetAfter, Is.GreaterThan(offsetBefore),
+			"First row should have spacing above it when vertical spacing is applied");
 	}
 }
