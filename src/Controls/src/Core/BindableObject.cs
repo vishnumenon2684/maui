@@ -81,18 +81,7 @@ namespace Microsoft.Maui.Controls
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
 		/// <remarks>When <paramref name="property"/> is read-only, nothing will happen.</remarks>
 		public void ClearValue(BindableProperty property)
-		{
-			if (property == null)
-				throw new ArgumentNullException(nameof(property));
-
-			if (property.IsReadOnly)
-			{
-				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
-				return;
-			}
-
-			ClearValueCore(property, SetterSpecificity.ManualValueSetter);
-		}
+			=> ClearValue(property, SetterSpecificity.ManualValueSetter);
 
 		internal void ClearValue(BindableProperty property, SetterSpecificity specificity)
 		{
