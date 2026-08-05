@@ -260,7 +260,7 @@ internal static class SafeAreaExtensions
 					var newSystemBarsLeft = left > 0 ? 0 : systemBars.Left;
 					var newSystemBarsTop = top > 0 ? 0 : systemBars.Top;
 					var newSystemBarsRight = right > 0 ? 0 : systemBars.Right;
-					var newSystemBarsBottom = (bottom > 0 || isKeyboardShowing) ? 0 : systemBars.Bottom;
+					var newSystemBarsBottom = bottom > 0 ? 0 : systemBars.Bottom;
 
 					builder.SetInsets(WindowInsetsCompat.Type.SystemBars(),
 						AndroidX.Core.Graphics.Insets.Of(newSystemBarsLeft, newSystemBarsTop, newSystemBarsRight, newSystemBarsBottom));
@@ -271,7 +271,7 @@ internal static class SafeAreaExtensions
 					var newCutoutLeft = left > 0 ? 0 : displayCutout.Left;
 					var newCutoutTop = top > 0 ? 0 : displayCutout.Top;
 					var newCutoutRight = right > 0 ? 0 : displayCutout.Right;
-					var newCutoutBottom = (bottom > 0 || isKeyboardShowing) ? 0 : displayCutout.Bottom;
+					var newCutoutBottom = bottom > 0 ? 0 : displayCutout.Bottom;
 
 					builder.SetInsets(WindowInsetsCompat.Type.DisplayCutout(),
 						AndroidX.Core.Graphics.Insets.Of(newCutoutLeft, newCutoutTop, newCutoutRight, newCutoutBottom));
