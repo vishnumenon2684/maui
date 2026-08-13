@@ -738,8 +738,9 @@ namespace Microsoft.Maui.Controls.MSBuild.UnitTests
 			var projectFile = IOPath.Combine(tempDirectory, "test.csproj");
 			project.Save(projectFile);
 
-			// Only run the dump target — no full compilation needed for this assertion.
-			return Build(projectFile, target: "_TestDumpMauiXamlItems");
+			// Run the filter target directly. BeforeTargets will inject TargetPlatformIdentifier
+			// first, and AfterTargets will fire the dump after — no full compilation needed.
+			return Build(projectFile, target: "_MauiRemovePlatformCompileItems");
 		}
 
 		static string GetNormalizedMauiXamlItemsLine(string log) =>
