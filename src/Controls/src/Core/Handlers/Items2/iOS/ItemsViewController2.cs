@@ -38,9 +38,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
 		UIView _emptyUIView;
-		// Wraps _emptyUIView when it is placed as a superview sibling of CollectionView.
-		// Uses a pass-through HitTest so that touches on empty areas reach the scroll view.
-		UIView _emptyViewSiblingContainer;
 		VisualElement _emptyViewFormsElement;
 		List<string> _cellReuseIds = new List<string>();
 		CGSize _previousContentSize;
@@ -597,22 +594,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			var targetView = CollectionView.Superview;
 			if (targetView is not null)
 			{
-				// Wrap in a pass-through container so that touches landing on the empty area of the view
-				// (i.e. touches not claimed by an interactive descendant) fall through to the UIScrollView
-				// (CollectionView) below. Without this, the full-size sibling drawn above the scroll view
-				// wins iOS hit-testing and the pull-to-refresh pan gesture is never delivered.
-				// Interactive descendants (e.g. a Button in an EmptyView) are unaffected.
-				_emptyViewSiblingContainer ??= new EmptyViewSiblingContainer();
-				_emptyViewSiblingContainer.Tag = EmptyTag;
-				_emptyViewSiblingContainer.AddSubview(_emptyUIView);
-				targetView.InsertSubviewAbove(_emptyViewSiblingContainer, CollectionView);
+				targetView.InsertSubviewAbove(_emptyUIView, CollectionView);
 			}
 			else
 			{
 				// TODO: DetermineEmptyViewFrame() returns superview-coordinate-space values (CollectionView.Frame.X/Y),
 				// which are incorrect when the empty view is a child of CollectionView. This fallback is unlikely
 				// to execute in practice since Superview is expected to be non-null by the time ShowEmptyView() is called.
-				_emptyViewSiblingContainer = null;
 				CollectionView.AddSubview(_emptyUIView);
 			}
 
@@ -634,10 +622,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				return;
 			}
 
-			if (_emptyViewSiblingContainer is not null)
-				_emptyViewSiblingContainer.RemoveFromSuperview();
-			else
-				_emptyUIView.RemoveFromSuperview();
+			_emptyUIView.RemoveFromSuperview();
 
 			_emptyViewDisplayed = false;
 		}
@@ -649,16 +634,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			// RemoveLogicalChild will trigger a disposal of the native view and its content
 			ItemsView.RemoveLogicalChild(_emptyViewFormsElement);
 
-			_emptyViewSiblingContainer?.Dispose();
-			_emptyViewSiblingContainer = null;
 			_emptyUIView = null;
 			_emptyViewFormsElement = null;
 		}
 
 		virtual internal CGRect LayoutEmptyView()
 		{
-			var emptyViewInHierarchy = (UIView)_emptyViewSiblingContainer ?? _emptyUIView;
-			if (!_initialized || _emptyUIView == null || emptyViewInHierarchy.Superview == null)
+			if (!_initialized || _emptyUIView == null || _emptyUIView.Superview == null)
 			{
 				return CGRect.Empty;
 			}
@@ -678,17 +660,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				}
 			}
 
-			if (_emptyViewSiblingContainer is not null)
-			{
-				// The pass-through container is the view inserted into the superview;
-				// _emptyUIView fills the container in its local coordinate space.
-				_emptyViewSiblingContainer.Frame = frame;
-				_emptyUIView.Frame = new CGRect(0, 0, frame.Width, frame.Height);
-			}
-			else
-			{
-				_emptyUIView.Frame = frame;
-			}
+			_emptyUIView.Frame = frame;
 
 			return frame;
 		}
@@ -743,25 +715,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				{
 					templatedCell2.Unbind();
 				}
-			}
-		}
-
-		/// <summary>
-		/// A pass-through UIView container used to host the empty view as a sibling of the
-		/// CollectionView. It overrides <see cref="HitTest"/> so that touches landing on the
-		/// container's empty area (i.e. not claimed by an interactive descendant) return null,
-		/// allowing the UIScrollView below to receive pan and pull-to-refresh gestures.
-		/// Interactive descendants such as Buttons inside an EmptyView are unaffected.
-		/// </summary>
-		sealed class EmptyViewSiblingContainer : UIView
-		{
-			public override UIView HitTest(CGPoint point, UIEvent uiEvent)
-			{
-				var hit = base.HitTest(point, uiEvent);
-				// If the only "hit" view is this container itself (no interactive descendant
-				// claims the touch), return null so the system passes the touch to the view
-				// below (the UIScrollView / CollectionView) in the z-order.
-				return hit == this ? null : hit;
 			}
 		}
 	}
