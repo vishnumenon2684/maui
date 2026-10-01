@@ -42,7 +42,7 @@ public class ResizetizerTests : BaseBuildTest
 		""";
 
 	[Fact]
-	public void PackageContainsNetStandardSkiaSharpAssembly()
+	public void PackageContainsCompatibleSkiaAssemblies()
 	{
 		SetTestIdentifier();
 
@@ -56,11 +56,20 @@ public class ResizetizerTests : BaseBuildTest
 		Assert.True(File.Exists(packagePath), $"Package was not found: {packagePath}");
 
 		using var package = ZipFile.OpenRead(packagePath);
-		var skiaSharpEntry = package.GetEntry("buildTransitive/SkiaSharp.dll");
+		AssertPackageAssemblyTargetFramework(package, "buildTransitive/SkiaSharp.dll", ".NETFramework,Version=v4.6.2");
+		AssertPackageAssemblyTargetFramework(package, "buildTransitive/Svg.Skia.dll", ".NETFramework,Version=v4.6.1");
+	}
 
-		Assert.NotNull(skiaSharpEntry);
+	static void AssertPackageAssemblyTargetFramework(
+		ZipArchive package,
+		string assemblyPath,
+		string expectedTargetFramework)
+	{
+		var assemblyEntry = package.GetEntry(assemblyPath);
 
-		using var packageStream = skiaSharpEntry.Open();
+		Assert.NotNull(assemblyEntry);
+
+		using var packageStream = assemblyEntry.Open();
 		using var assemblyStream = new MemoryStream();
 		packageStream.CopyTo(assemblyStream);
 		assemblyStream.Position = 0;
@@ -68,7 +77,7 @@ public class ResizetizerTests : BaseBuildTest
 		using var peReader = new PEReader(assemblyStream);
 		var metadataReader = peReader.GetMetadataReader();
 
-		Assert.Equal(".NETStandard,Version=v2.0", GetTargetFramework(metadataReader));
+		Assert.Equal(expectedTargetFramework, GetTargetFramework(metadataReader));
 	}
 
 	static string? GetTargetFramework(MetadataReader metadataReader)

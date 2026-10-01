@@ -38,8 +38,8 @@
     <PackageReference Include="Mono.ApiTools.MSBuildTasks" PrivateAssets="all" />
   </ItemGroup>
   <PropertyGroup>
-    <_AdjustmentsAssembly>$(PkgSvg_Skia)\lib\netstandard2.0\Svg.Skia.dll</_AdjustmentsAssembly>
-    <_AdjustmentsReferencedAssembly>$(PkgSkiaSharp)\lib\netstandard2.0\SkiaSharp.dll</_AdjustmentsReferencedAssembly>
+    <_AdjustmentsAssembly>$(PkgSvg_Skia)\lib\net461\Svg.Skia.dll</_AdjustmentsAssembly>
+    <_AdjustmentsReferencedAssembly>$(PkgSkiaSharp)\lib\net462\SkiaSharp.dll</_AdjustmentsReferencedAssembly>
   </PropertyGroup>
   <Target Name="_AdjustSkiaSharpVersion" BeforeTargets="Build;AssignTargetPaths" Inputs="$(MSBuildProjectFile);$(_AdjustmentsAssembly);$(_AdjustmentsReferencedAssembly)" Outputs="$(IntermediateOutputPath)adjustments\Svg.Skia.dll">
     <MakeDir Directories="$(IntermediateOutputPath)adjustments" />
