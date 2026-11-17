@@ -36,7 +36,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		public override Size GetDesiredSize(double widthConstraint, double heightConstraint)
 		{
-			if (VirtualView is not IView view)
+			if (PlatformView.GetAdapter() is not EmptyViewAdapter || VirtualView is not IView view)
 				return base.GetDesiredSize(widthConstraint, heightConstraint);
 
 			// Use the same constraints as the native measure so explicit sizes do not
