@@ -5,6 +5,7 @@ using System.Text;
 using AndroidX.RecyclerView.Widget;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using AView = Android.Views.View;
 
 namespace Microsoft.Maui.Controls.Handlers.Items
 {
@@ -35,14 +36,17 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		public override Size GetDesiredSize(double widthConstraint, double heightConstraint)
 		{
-			var width = widthConstraint;
-			var height = heightConstraint;
+			if (VirtualView is not IView view)
+				return base.GetDesiredSize(widthConstraint, heightConstraint);
 
-			if (!double.IsInfinity(width))
-				width = Context.ToPixels(width);
-
-			if (!double.IsInfinity(height))
-				height = Context.ToPixels(height);
+			// Use the same constraints as the native measure so explicit sizes do not
+			// alternate with the parent's available space on every measure/arrange pass.
+			var widthSpec = Context.CreateMeasureSpec(widthConstraint, view.Width, view.MinimumWidth, view.MaximumWidth);
+			var heightSpec = Context.CreateMeasureSpec(heightConstraint, view.Height, view.MinimumHeight, view.MaximumHeight);
+			var width = AView.MeasureSpec.GetMode(widthSpec) == global::Android.Views.MeasureSpecMode.Unspecified
+				? double.PositiveInfinity : AView.MeasureSpec.GetSize(widthSpec);
+			var height = AView.MeasureSpec.GetMode(heightSpec) == global::Android.Views.MeasureSpecMode.Unspecified
+				? double.PositiveInfinity : AView.MeasureSpec.GetSize(heightSpec);
 
 			UpdateEmptyViewSize(width, height);
 
@@ -128,8 +132,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					var viewHolder = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
 					if (viewHolder is not null)
 					{
-						// ViewHolder exists, request layout immediately to avoid frame delay
-						viewHolder.ItemView.RequestLayout();
+						PlatformInterop.RequestLayoutIfNeeded(viewHolder.ItemView);
 					}
 					else
 					{
@@ -141,7 +144,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 								return;
 							}
 							var vh = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
-							vh?.ItemView.RequestLayout();
+							if (vh is not null)
+								PlatformInterop.RequestLayoutIfNeeded(vh.ItemView);
 						});
 					}
 				}
