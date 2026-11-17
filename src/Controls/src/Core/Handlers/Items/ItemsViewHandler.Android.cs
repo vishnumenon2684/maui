@@ -105,53 +105,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void UpdateEmptyViewSize(double width, double height)
 		{
-			var platformView = PlatformView;
-			var adapter = platformView.GetAdapter();
+			var adapter = PlatformView.GetAdapter();
 
 			if (adapter is EmptyViewAdapter emptyViewAdapter)
 			{
-				double tolerance = 0.001;
-				var widthChanged = Math.Abs(emptyViewAdapter.RecyclerViewWidth - width) > tolerance;
-				var heightChanged = Math.Abs(emptyViewAdapter.RecyclerViewHeight - height) > tolerance;
-
 				emptyViewAdapter.RecyclerViewWidth = width;
 				emptyViewAdapter.RecyclerViewHeight = height;
-
-				if (widthChanged || heightChanged)
-				{
-					// EmptyView position depends on whether the CollectionView has a header
-					var structuredItemsView = VirtualView as StructuredItemsView;
-					var hasHeader = (structuredItemsView?.Header ?? structuredItemsView?.HeaderTemplate) is not null;
-					var emptyViewPosition = hasHeader ? 1 : 0;
-
-					var viewHolder = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
-					if (viewHolder is not null)
-					{
-						RequestEmptyViewLayout(viewHolder);
-					}
-					else
-					{
-						// ViewHolder not created yet, defer layout request to next UI loop iteration
-						platformView.Post(() =>
-						{
-							if (!ReferenceEquals(((IElementHandler)this).PlatformView, platformView) ||
-								!ReferenceEquals(platformView.GetAdapter(), emptyViewAdapter))
-							{
-								return;
-							}
-							var vh = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
-							RequestEmptyViewLayout(vh);
-						});
-					}
-				}
-
-				static void RequestEmptyViewLayout(RecyclerView.ViewHolder viewHolder)
-				{
-					if (viewHolder?.ItemView is EmptyViewContentView itemView)
-						itemView.RequestLayoutIfSizeChanged();
-					else if (viewHolder is not null)
-						PlatformInterop.RequestLayoutIfNeeded(viewHolder.ItemView);
-				}
 			}
 		}
 	}
