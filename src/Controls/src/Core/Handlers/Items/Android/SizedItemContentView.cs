@@ -7,8 +7,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 {
 	internal class SizedItemContentView : ItemContentView
 	{
-		readonly Func<double> _width;
-		readonly Func<double> _height;
+		protected readonly Func<double> _width;
+		protected readonly Func<double> _height;
 
 		public SizedItemContentView(Context context, Func<double> width, Func<double> height)
 			: base(context)
@@ -54,9 +54,34 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 	internal class EmptyViewContentView : SizedItemContentView, IMauiRecyclerViewEmptyView
 	{
+		bool _layoutCheckPending;
+
 		public EmptyViewContentView(Context context, Func<double> width, Func<double> height)
 			: base(context, width, height)
 		{
+		}
+
+		internal void RequestLayoutIfSizeChanged()
+		{
+			if (_layoutCheckPending)
+				return;
+
+			// Measure and arrange can supply different constraints in the same pass.
+			// Check the resulting geometry once both have finished.
+			_layoutCheckPending = Post(CheckLayoutSize);
+		}
+
+		void CheckLayoutSize()
+		{
+			_layoutCheckPending = false;
+			if (!this.IsAlive() || Content?.PlatformView is not { } platformView || !platformView.IsAlive())
+				return;
+
+			// Match MeasureVirtualView, where the content's native minimum size wins.
+			var width = Math.Max(_width(), platformView.MinimumWidth);
+			var height = Math.Max(_height(), platformView.MinimumHeight);
+			if (MeasuredWidth != width || Width != width || MeasuredHeight != height || Height != height)
+				PlatformInterop.RequestLayoutIfNeeded(this);
 		}
 	}
 }

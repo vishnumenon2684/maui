@@ -124,26 +124,33 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					var hasHeader = (structuredItemsView?.Header ?? structuredItemsView?.HeaderTemplate) is not null;
 					var emptyViewPosition = hasHeader ? 1 : 0;
 
-					// Check if ViewHolder exists and is ready for immediate layout request
 					var viewHolder = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
 					if (viewHolder is not null)
 					{
-						// ViewHolder exists, request layout immediately to avoid frame delay
-						viewHolder.ItemView.RequestLayout();
+						RequestEmptyViewLayout(viewHolder);
 					}
 					else
 					{
 						// ViewHolder not created yet, defer layout request to next UI loop iteration
 						platformView.Post(() =>
 						{
-							if (!ReferenceEquals(((IElementHandler)this).PlatformView, platformView))
+							if (!ReferenceEquals(((IElementHandler)this).PlatformView, platformView) ||
+								!ReferenceEquals(platformView.GetAdapter(), emptyViewAdapter))
 							{
 								return;
 							}
 							var vh = platformView.FindViewHolderForAdapterPosition(emptyViewPosition);
-							vh?.ItemView.RequestLayout();
+							RequestEmptyViewLayout(vh);
 						});
 					}
+				}
+
+				static void RequestEmptyViewLayout(RecyclerView.ViewHolder viewHolder)
+				{
+					if (viewHolder?.ItemView is EmptyViewContentView itemView)
+						itemView.RequestLayoutIfSizeChanged();
+					else if (viewHolder is not null)
+						PlatformInterop.RequestLayoutIfNeeded(viewHolder.ItemView);
 				}
 			}
 		}
