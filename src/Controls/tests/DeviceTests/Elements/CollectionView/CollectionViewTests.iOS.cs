@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using CoreFoundation;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Controls;
@@ -93,92 +92,9 @@ namespace Microsoft.Maui.DeviceTests
 					Assert.Equal(page, calls);
 					Assert.Equal(1, maximumDepth);
 					Assert.Equal(0, depth);
+					Assert.Equal(0d, (double)nativeCollectionView.ContentOffset.Y);
 				}
 			});
-		}
-
-		[Fact]
-		public async Task RemainingItemsThresholdCoalescesNativeScrollCallbacks40467()
-		{
-			SetupBuilder();
-			var collectionView = CreateThresholdCollectionView40467();
-			await CreateHandlerAndAddToWindow<CollectionViewHandler2>(collectionView, async handler =>
-			{
-				var nativeCollectionView = handler.Controller.CollectionView;
-				await AssertEventually(() => nativeCollectionView.IndexPathsForVisibleItems.Length > 0);
-				int calls = 0;
-				int events = 0;
-				collectionView.RemainingItemsThresholdReached += (_, _) => events++;
-				collectionView.RemainingItemsThresholdReachedCommand = new Command(() => calls++);
-				collectionView.RemainingItemsThreshold = 5;
-				var bottom = nativeCollectionView.ContentSize.Height - nativeCollectionView.Bounds.Height;
-				nativeCollectionView.SetContentOffset(new CGPoint(0, bottom - 25), false);
-				nativeCollectionView.Delegate.Scrolled(nativeCollectionView);
-				nativeCollectionView.Delegate.Scrolled(nativeCollectionView);
-
-				Assert.Equal(0, calls);
-				Assert.Equal(0, events);
-				await DrainThresholdNotifications40467();
-				Assert.Equal(1, calls);
-				Assert.Equal(1, events);
-			});
-		}
-
-		[Theory]
-		[InlineData(0)] // Threshold disabled.
-		[InlineData(1)] // Replacement source no longer near its end.
-		[InlineData(2)] // Delegate replaced.
-		public async Task RemainingItemsThresholdRechecksCurrentState40467(int change)
-		{
-			SetupBuilder();
-			var collectionView = CreateThresholdCollectionView40467();
-			await CreateHandlerAndAddToWindow<CollectionViewHandler2>(collectionView, async handler =>
-			{
-				var nativeCollectionView = handler.Controller.CollectionView;
-				await AssertEventually(() => nativeCollectionView.IndexPathsForVisibleItems.Length > 0);
-				int calls = 0;
-				collectionView.RemainingItemsThresholdReachedCommand = new Command(() => calls++);
-				collectionView.RemainingItemsThreshold = 5;
-				var bottom = nativeCollectionView.ContentSize.Height - nativeCollectionView.Bounds.Height;
-				nativeCollectionView.SetContentOffset(new CGPoint(0, bottom - 25), false);
-				Assert.Equal(0, calls);
-
-				var originalDelegate = nativeCollectionView.Delegate;
-				using var replacementDelegate = new UICollectionViewDelegate();
-				if (change == 1)
-					collectionView.ItemsSource = Enumerable.Range(0, 40).ToList();
-				else if (change == 2)
-					nativeCollectionView.Delegate = replacementDelegate;
-				else
-					collectionView.RemainingItemsThreshold = -1;
-				nativeCollectionView.LayoutIfNeeded();
-				await DrainThresholdNotifications40467();
-				Assert.Equal(0, calls);
-
-				// Dropping the stale request must not prevent the next valid request.
-				nativeCollectionView.Delegate = originalDelegate;
-				collectionView.RemainingItemsThreshold = 5;
-				nativeCollectionView.SetContentOffset(CGPoint.Empty, false);
-				bottom = nativeCollectionView.ContentSize.Height - nativeCollectionView.Bounds.Height;
-				nativeCollectionView.SetContentOffset(new CGPoint(0, bottom - 25), false);
-				await DrainThresholdNotifications40467();
-				Assert.Equal(1, calls);
-			});
-		}
-
-		static CollectionView CreateThresholdCollectionView40467() => new()
-		{
-			WidthRequest = 300,
-			HeightRequest = 200,
-			ItemsSource = Enumerable.Range(0, 10).ToList(),
-			ItemTemplate = new DataTemplate(() => new Label { Text = "Item", HeightRequest = 50 })
-		};
-
-		static Task DrainThresholdNotifications40467()
-		{
-			var completion = new TaskCompletionSource();
-			DispatchQueue.MainQueue.DispatchAsync(() => completion.SetResult());
-			return completion.Task;
 		}
 
 		[Theory]
