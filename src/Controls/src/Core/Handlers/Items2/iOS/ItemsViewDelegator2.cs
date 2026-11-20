@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using CoreFoundation;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Controls.Handlers.Items;
@@ -16,6 +17,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		where TViewController : ItemsViewController2<TItemsView>
 	{
 		readonly WeakReference<TViewController> _viewController;
+		bool _thresholdNotificationPending;
 
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
 		public UICollectionViewLayout ItemsViewLayout { get; }
@@ -60,30 +62,54 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 			var itemsView = viewController.ItemsView;
 			var source = viewController.ItemsSource;
+			if (itemsView is null || source is null)
+				return;
+
 			itemsView.SendScrolled(itemsViewScrolledEventArgs);
 
 			PreviousHorizontalOffset = (float)contentOffsetX;
 			PreviousVerticalOffset = (float)contentOffsetY;
 
-			if (!visibleItems)
+			if (!visibleItems || viewController.ItemsSource != source ||
+				!IsThresholdReached(itemsView.RemainingItemsThreshold, source.ItemCount, lastVisibleItemIndex) ||
+				_thresholdNotificationPending)
 			{
 				return;
 			}
 
-			switch (itemsView.RemainingItemsThreshold)
-			{
-				case -1:
-					return;
-				case 0:
-					if (lastVisibleItemIndex == source.ItemCount - 1)
-						itemsView.SendRemainingItemsThresholdReached();
-					break;
-				default:
-					if (source.ItemCount - 1 - lastVisibleItemIndex <= itemsView.RemainingItemsThreshold)
-						itemsView.SendRemainingItemsThresholdReached();
-					break;
-			}
+			// Loading items must not reenter UIKit's collection updates from a scroll/layout callback.
+			_thresholdNotificationPending = true;
+			DispatchQueue.MainQueue.DispatchAsync(NotifyRemainingItemsThresholdReached);
 		}
+
+		void NotifyRemainingItemsThresholdReached()
+		{
+			// Further scroll callbacks can request another notification for the next UI tick.
+			_thresholdNotificationPending = false;
+
+			var viewController = ViewController;
+			var itemsView = viewController?.ItemsView;
+			var source = viewController?.ItemsSource;
+			if (itemsView is null || source is null ||
+				viewController.Handle == IntPtr.Zero || itemsView.Handler is not { } handler ||
+				handler.PlatformView != viewController.View ||
+				viewController.CollectionView?.Delegate != this)
+			{
+				return;
+			}
+
+			var (visibleItems, _, _, lastVisibleItemIndex) = GetVisibleItemsIndex();
+			if (visibleItems && IsThresholdReached(itemsView.RemainingItemsThreshold, source.ItemCount, lastVisibleItemIndex))
+				itemsView.SendRemainingItemsThresholdReached();
+		}
+
+		static bool IsThresholdReached(int threshold, int itemCount, int lastVisibleItemIndex) =>
+			threshold switch
+			{
+				-1 => false,
+				0 => lastVisibleItemIndex == itemCount - 1,
+				_ => itemCount - 1 - lastVisibleItemIndex <= threshold
+			};
 
 #if MACCATALYST
 		public override void DraggingStarted(UIScrollView scrollView)
