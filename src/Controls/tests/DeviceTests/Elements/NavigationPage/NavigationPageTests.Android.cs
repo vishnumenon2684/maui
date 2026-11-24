@@ -25,6 +25,20 @@ namespace Microsoft.Maui.DeviceTests
 	[Category(TestCategory.NavigationPage)]
 	public partial class NavigationPageTests : ControlsHandlerTestBase
 	{
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public Task PopToRootAsyncCompletesForInactiveTabsWhileModalIsOpen(bool animated) =>
+			ValidatePopToRootForInactiveTabsWhileModalIsOpen(animated);
+
+		static void AssertInactiveTabIsAtNativeRoot(NavigationPage page)
+		{
+			var handler = Assert.IsType<NavigationViewHandler>(page.Handler);
+			var fragments = handler.StackNavigationManager.NavHost.ChildFragmentManager;
+			Assert.Equal(0, fragments.BackStackEntryCount);
+			Assert.Same(page.RootPage.Handler.PlatformView, fragments.PrimaryNavigationFragment.View);
+		}
+
 		[Fact]
 		// https://github.com/dotnet/maui/issues/39456
 		public async Task PushCompletesWhenThePlatformPopsDuringTheTransition()

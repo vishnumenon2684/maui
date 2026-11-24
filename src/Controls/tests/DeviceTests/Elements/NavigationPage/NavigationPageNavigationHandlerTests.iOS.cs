@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Handlers;
@@ -16,6 +17,12 @@ namespace Microsoft.Maui.DeviceTests
 	[Trait(RendererHandlerVariant.NavigationViewVariantTraitName, RendererHandlerVariant.NavigationViewHandler)] // See RendererHandlerVariant.cs
 	public class NavigationPageNavigationHandlerTests : NavigationPageTests
 	{
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public Task PopToRootAsyncCompletesForInactiveTabsWhileModalIsOpen(bool animated) =>
+			ValidatePopToRootForInactiveTabsWhileModalIsOpen(animated);
+
 		protected override void RegisterNavigationPageHandlers(IMauiHandlersCollection handlers)
 		{
 			handlers.AddHandler(typeof(Toolbar), typeof(ToolbarHandler));

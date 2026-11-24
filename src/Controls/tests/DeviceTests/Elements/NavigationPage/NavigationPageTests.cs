@@ -328,38 +328,47 @@ namespace Microsoft.Maui.DeviceTests
 
 
 #if ANDROID || IOS || MACCATALYST
-		[Fact]
-		public async Task PopToRootAsyncCompletesForInactiveTabsWhileModalIsOpen()
+		protected async Task ValidatePopToRootForInactiveTabsWhileModalIsOpen(bool animated)
 		{
 			SetupBuilder();
 
-			var first = new NavigationPage(new ContentPage());
-			var second = new NavigationPage(new ContentPage());
-			var third = new NavigationPage(new ContentPage());
+			var first = new NavigationPage(new ContentPage { Content = new Label { Text = "First root" } });
+			var second = new NavigationPage(new ContentPage { Content = new Label { Text = "Second root" } });
+			var third = new NavigationPage(new ContentPage { Content = new Label { Text = "Third root" } });
 			var tabs = new TabbedPage { Children = { first, second, third } };
 			var modal = new ContentPage();
 			var timeout = TimeSpan.FromSeconds(10);
+			var reusedPage = new ContentPage { Content = new Label { Text = "Reused page" } };
 
-			await second.PushAsync(new ContentPage(), false);
-			await third.PushAsync(new ContentPage(), false);
+			await second.PushAsync(reusedPage, false);
+			await third.PushAsync(new ContentPage { Content = new Label { Text = "Third detail" } }, false);
 
 			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(tabs), async _ =>
 			{
-				var showModal = first.Navigation.PushModalAsync(modal, false);
-				Assert.Same(showModal, await Task.WhenAny(showModal, Task.Delay(timeout)));
-				await showModal;
+				// Realize the outgoing views so their delayed destruction cannot acknowledge a later request.
+				tabs.CurrentPage = second;
+				await OnLoadedAsync(second.CurrentPage).WaitAsync(timeout);
+				tabs.CurrentPage = third;
+				await OnLoadedAsync(third.CurrentPage).WaitAsync(timeout);
+				tabs.CurrentPage = first;
+				await OnLoadedAsync(first.CurrentPage).WaitAsync(timeout);
+				await first.Navigation.PushModalAsync(modal, false).WaitAsync(timeout);
 
 				try
 				{
 					Assert.Equal(2, second.Navigation.NavigationStack.Count);
 					Assert.Equal(2, third.Navigation.NavigationStack.Count);
-					var popSecond = second.PopToRootAsync();
-					Assert.True(popSecond == await Task.WhenAny(popSecond, Task.Delay(timeout)), "PopToRootAsync did not complete for the second tab.");
-					await popSecond;
-
-					var popThird = third.PopToRootAsync();
-					Assert.True(popThird == await Task.WhenAny(popThird, Task.Delay(timeout)), "PopToRootAsync did not complete for the third tab.");
-					await popThird;
+					await second.PopToRootAsync(animated).WaitAsync(timeout);
+#if ANDROID
+					AssertInactiveTabIsAtNativeRoot(second);
+					await second.PushAsync(reusedPage, false).WaitAsync(timeout);
+					await second.PopToRootAsync(animated).WaitAsync(timeout);
+					AssertInactiveTabIsAtNativeRoot(second);
+#endif
+					await third.PopToRootAsync(animated).WaitAsync(timeout);
+#if ANDROID
+					AssertInactiveTabIsAtNativeRoot(third);
+#endif
 
 					Assert.Same(first, tabs.CurrentPage);
 					Assert.Same(modal, Assert.Single(first.Navigation.ModalStack));
@@ -370,6 +379,16 @@ namespace Microsoft.Maui.DeviceTests
 				{
 					await first.Navigation.PopModalAsync(false).WaitAsync(timeout);
 				}
+
+				tabs.CurrentPage = second;
+				await OnLoadedAsync(((ContentPage)second.RootPage).Content).WaitAsync(timeout);
+				await second.PushAsync(reusedPage, animated).WaitAsync(timeout);
+				await OnLoadedAsync(reusedPage.Content).WaitAsync(timeout);
+				await second.PopToRootAsync(animated).WaitAsync(timeout);
+				await OnLoadedAsync(((ContentPage)second.RootPage).Content).WaitAsync(timeout);
+
+				tabs.CurrentPage = third;
+				await OnLoadedAsync(((ContentPage)third.RootPage).Content).WaitAsync(timeout);
 			});
 		}
 #endif
