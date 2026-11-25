@@ -171,6 +171,26 @@ System.Console.WriteLine(System.Environment.GetEnvironmentVariable("NUNIT_SKIPPE
         }
     }
 
+    It 'recognizes fresh timestamped Apple results without accepting stale or unrelated XML' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "xharness-apple-results-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            '<assemblies />' | Set-Content (Join-Path $tempRoot 'xunit-test-old.xml') -Encoding UTF8
+            $snapshot = Get-XHarnessTestResultSnapshot -OutputDirectory $tempRoot -ResultFileName 'xunit-test-*.xml'
+            '<assemblies />' | Set-Content (Join-Path $tempRoot 'testResults.xml') -Encoding UTF8
+            @(Get-FreshXHarnessTestResultFiles -OutputDirectory $tempRoot -BeforeSnapshot $snapshot -ResultFileName 'xunit-test-*.xml').Count |
+                Should -Be 0
+
+            $freshFile = Join-Path $tempRoot 'xunit-test-maccatalyst-20261124_173042.xml'
+            '<assemblies><assembly /></assemblies>' | Set-Content $freshFile -Encoding UTF8
+            @(Get-FreshXHarnessTestResultFiles -OutputDirectory $tempRoot -BeforeSnapshot $snapshot -ResultFileName 'xunit-test-*.xml') |
+                Should -Be @($freshFile)
+        } finally {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
     It 'isolates repeated class-filtered XHarness invocations under the diagnostics root' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "xharness-run-root-$([guid]::NewGuid())"
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null

@@ -1,0 +1,32 @@
+<views:BasePage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:Maui.Controls.Sample.Pages.Base"
+    x:Class="Maui.Controls.Sample.Pages.RichEditorPage"
+    Title="RichEditor">
+    <Grid Padding="12" RowDefinitions="Auto,*,Auto,Auto,Auto" RowSpacing="8">
+        <FlexLayout Wrap="Wrap">
+            <Button Text="Bold" Clicked="OnBold" />
+            <Button Text="Italic" Clicked="OnItalic" />
+            <Button Text="Underline" Clicked="OnUnderline" />
+            <Button Text="Large font" Clicked="OnFont" />
+            <Button Text="Default font" Clicked="OnDefaultFont" />
+            <Button Text="Bullets" Clicked="OnBullets" />
+            <Button Text="Numbers" Clicked="OnNumbers" />
+            <Button Text="No list" Clicked="OnNoList" />
+            <Button Text="Undo" Clicked="OnUndo" />
+            <Button Text="Redo" Clicked="OnRedo" />
+        </FlexLayout>
+        <RichEditor x:Name="RichText" Grid.Row="1" MinimumHeightRequest="150" />
+        <Label x:Name="Selection" Grid.Row="2" />
+        <Editor x:Name="MarkdownText" Grid.Row="3" HeightRequest="100"
+                Placeholder="Markdown with optional inline HTML" />
+        <VerticalStackLayout Grid.Row="4">
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Import Markdown" Clicked="OnImport" />
+                <Button Text="Export Markdown" Clicked="OnExport" />
+            </HorizontalStackLayout>
+            <Label x:Name="ErrorText" TextColor="Red" />
+        </VerticalStackLayout>
+    </Grid>
+</views:BasePage>

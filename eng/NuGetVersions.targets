@@ -42,6 +42,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Update="Markdig" Version="$(MarkdigPackageVersion)" />
+    <PackageReference Update="AngleSharp" Version="$(AngleSharpPackageVersion)" />
     <PackageReference
         Update="HarfBuzzSharp"
         Version="$(_HarfBuzzSharpVersion)"

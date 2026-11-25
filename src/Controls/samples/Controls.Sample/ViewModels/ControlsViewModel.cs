@@ -70,6 +70,9 @@ namespace Maui.Controls.Sample.ViewModels
 			new SectionModel(typeof(RefreshViewPage), "RefreshView",
 				"RefreshView is a container control that provides pull-to-refresh functionality for scrollable content."),
 
+			new SectionModel(typeof(RichEditorPage), "RichEditor",
+				"Native rich text editing with styled runs, lists and Markdown import/export."),
+
 			new SectionModel(typeof(SearchBarPage), "SearchBar",
 				"The SearchBar is a user input control used to initiating a search."),
 

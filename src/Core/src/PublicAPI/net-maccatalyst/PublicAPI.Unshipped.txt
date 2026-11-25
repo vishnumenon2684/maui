@@ -1,1 +1,56 @@
-#nullable enable
+﻿#nullable enable
+Microsoft.Maui.Handlers.RichEditorHandler
+Microsoft.Maui.Handlers.RichEditorHandler.RichEditorHandler() -> void
+Microsoft.Maui.Handlers.RichEditorHandler.RichEditorHandler(Microsoft.Maui.IPropertyMapper? mapper, Microsoft.Maui.CommandMapper? commandMapper = null) -> void
+Microsoft.Maui.IRichEditor
+Microsoft.Maui.IRichEditor.CanRedo.get -> bool
+Microsoft.Maui.IRichEditor.CanUndo.get -> bool
+Microsoft.Maui.IRichEditor.CursorPosition.get -> int
+Microsoft.Maui.IRichEditor.Document.get -> Microsoft.Maui.RichTextDocument!
+Microsoft.Maui.IRichEditor.IsReadOnly.get -> bool
+Microsoft.Maui.IRichEditor.Redo() -> void
+Microsoft.Maui.IRichEditor.SelectionLength.get -> int
+Microsoft.Maui.IRichEditor.TypingStyle.get -> Microsoft.Maui.RichTextStyle!
+Microsoft.Maui.IRichEditor.Undo() -> void
+Microsoft.Maui.IRichEditor.UpdateSelection(int cursorPosition, int selectionLength) -> void
+Microsoft.Maui.IRichEditor.UpdateText(string! text, int cursorPosition, int selectionLength) -> void
+Microsoft.Maui.RichTextDocument
+Microsoft.Maui.RichTextDocument.Paragraphs.get -> System.Collections.Generic.IReadOnlyList<Microsoft.Maui.RichTextParagraph!>!
+Microsoft.Maui.RichTextDocument.RichTextDocument(System.Collections.Generic.IEnumerable<Microsoft.Maui.RichTextParagraph!>! paragraphs) -> void
+Microsoft.Maui.RichTextDocument.Text.get -> string!
+Microsoft.Maui.RichTextListKind
+Microsoft.Maui.RichTextListKind.Bullet = 1 -> Microsoft.Maui.RichTextListKind
+Microsoft.Maui.RichTextListKind.None = 0 -> Microsoft.Maui.RichTextListKind
+Microsoft.Maui.RichTextListKind.Numbered = 2 -> Microsoft.Maui.RichTextListKind
+Microsoft.Maui.RichTextParagraph
+Microsoft.Maui.RichTextParagraph.ListKind.get -> Microsoft.Maui.RichTextListKind
+Microsoft.Maui.RichTextParagraph.ListLevel.get -> int
+Microsoft.Maui.RichTextParagraph.ListStart.get -> int
+Microsoft.Maui.RichTextParagraph.RichTextParagraph(System.Collections.Generic.IEnumerable<Microsoft.Maui.RichTextRun!>! runs, Microsoft.Maui.RichTextListKind listKind = Microsoft.Maui.RichTextListKind.None, int listLevel = 0, int listStart = 1) -> void
+Microsoft.Maui.RichTextParagraph.Runs.get -> System.Collections.Generic.IReadOnlyList<Microsoft.Maui.RichTextRun!>!
+Microsoft.Maui.RichTextParagraph.Text.get -> string!
+Microsoft.Maui.RichTextRun
+Microsoft.Maui.RichTextRun.RichTextRun(string! text, Microsoft.Maui.RichTextStyle? style = null) -> void
+Microsoft.Maui.RichTextRun.Style.get -> Microsoft.Maui.RichTextStyle!
+Microsoft.Maui.RichTextRun.Text.get -> string!
+Microsoft.Maui.RichTextStyle
+Microsoft.Maui.RichTextStyle.Bold.get -> bool
+Microsoft.Maui.RichTextStyle.Equals(Microsoft.Maui.RichTextStyle? other) -> bool
+Microsoft.Maui.RichTextStyle.FontFamily.get -> string?
+Microsoft.Maui.RichTextStyle.FontSize.get -> double?
+Microsoft.Maui.RichTextStyle.Italic.get -> bool
+Microsoft.Maui.RichTextStyle.RichTextStyle(bool bold = false, bool italic = false, bool underline = false, string? fontFamily = null, double? fontSize = null) -> void
+Microsoft.Maui.RichTextStyle.Underline.get -> bool
+override Microsoft.Maui.Handlers.RichEditorHandler.ConnectHandler(UIKit.UITextView! platformView) -> void
+override Microsoft.Maui.Handlers.RichEditorHandler.CreatePlatformView() -> UIKit.UITextView!
+override Microsoft.Maui.Handlers.RichEditorHandler.DisconnectHandler(UIKit.UITextView! platformView) -> void
+override Microsoft.Maui.RichTextStyle.Equals(object? obj) -> bool
+override Microsoft.Maui.RichTextStyle.GetHashCode() -> int
+static Microsoft.Maui.Handlers.RichEditorHandler.MapDocument(Microsoft.Maui.Handlers.RichEditorHandler! handler, Microsoft.Maui.IRichEditor! editor) -> void
+static Microsoft.Maui.Handlers.RichEditorHandler.MapIsReadOnly(Microsoft.Maui.Handlers.RichEditorHandler! handler, Microsoft.Maui.IRichEditor! editor) -> void
+static Microsoft.Maui.Handlers.RichEditorHandler.MapSelection(Microsoft.Maui.Handlers.RichEditorHandler! handler, Microsoft.Maui.IRichEditor! editor) -> void
+static Microsoft.Maui.Handlers.RichEditorHandler.MapTypingStyle(Microsoft.Maui.Handlers.RichEditorHandler! handler, Microsoft.Maui.IRichEditor! editor) -> void
+static Microsoft.Maui.Handlers.RichEditorHandler.Mapper -> Microsoft.Maui.IPropertyMapper<Microsoft.Maui.IRichEditor!, Microsoft.Maui.Handlers.RichEditorHandler!>!
+static Microsoft.Maui.RichTextDocument.Empty.get -> Microsoft.Maui.RichTextDocument!
+static Microsoft.Maui.RichTextDocument.FromText(string! text, Microsoft.Maui.RichTextStyle? style = null) -> Microsoft.Maui.RichTextDocument!
+static Microsoft.Maui.RichTextStyle.Default.get -> Microsoft.Maui.RichTextStyle!

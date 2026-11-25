@@ -651,7 +651,14 @@ namespace Microsoft.Maui.DeviceTests
 
 		static UIWindow? GetKeyWindow(UIApplication application)
 		{
-			if (OperatingSystem.IsIOSVersionAtLeast(15))
+#if MACCATALYST
+			// Headless scenes may remain foreground-inactive on Mac Catalyst.
+			if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("headlessrunner")) &&
+				application.Delegate is UIApplicationDelegate appDelegate &&
+				appDelegate.Window is UIWindow headlessWindow)
+				return headlessWindow;
+#endif
+			if (OperatingSystem.IsIOSVersionAtLeast(15) || OperatingSystem.IsMacCatalystVersionAtLeast(15))
 			{
 				foreach (var scene in application.ConnectedScenes)
 				{

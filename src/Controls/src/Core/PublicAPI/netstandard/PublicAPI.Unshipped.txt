@@ -1,1 +1,32 @@
-#nullable enable
+﻿#nullable enable
+Microsoft.Maui.Controls.RichEditor
+Microsoft.Maui.Controls.RichEditor.ApplyBold() -> void
+Microsoft.Maui.Controls.RichEditor.ApplyFont(string? fontFamily, double? fontSize) -> void
+Microsoft.Maui.Controls.RichEditor.ApplyItalic() -> void
+Microsoft.Maui.Controls.RichEditor.ApplyList(Microsoft.Maui.RichTextListKind kind, int level = 0, int start = 1) -> void
+Microsoft.Maui.Controls.RichEditor.ApplyUnderline() -> void
+Microsoft.Maui.Controls.RichEditor.CanRedo.get -> bool
+Microsoft.Maui.Controls.RichEditor.CanUndo.get -> bool
+Microsoft.Maui.Controls.RichEditor.CursorPosition.get -> int
+Microsoft.Maui.Controls.RichEditor.CursorPosition.set -> void
+Microsoft.Maui.Controls.RichEditor.Document.get -> Microsoft.Maui.RichTextDocument!
+Microsoft.Maui.Controls.RichEditor.Document.set -> void
+Microsoft.Maui.Controls.RichEditor.GetMarkdown() -> string!
+Microsoft.Maui.Controls.RichEditor.InsertText(string! text) -> void
+Microsoft.Maui.Controls.RichEditor.IsReadOnly.get -> bool
+Microsoft.Maui.Controls.RichEditor.IsReadOnly.set -> void
+Microsoft.Maui.Controls.RichEditor.LoadMarkdown(string! markdown) -> void
+Microsoft.Maui.Controls.RichEditor.Redo() -> void
+Microsoft.Maui.Controls.RichEditor.RichEditor() -> void
+Microsoft.Maui.Controls.RichEditor.Select(int start, int length) -> void
+Microsoft.Maui.Controls.RichEditor.SelectionLength.get -> int
+Microsoft.Maui.Controls.RichEditor.SelectionLength.set -> void
+Microsoft.Maui.Controls.RichEditor.TextChanged -> System.EventHandler?
+Microsoft.Maui.Controls.RichEditor.TypingStyle.get -> Microsoft.Maui.RichTextStyle!
+Microsoft.Maui.Controls.RichEditor.TypingStyle.set -> void
+Microsoft.Maui.Controls.RichEditor.Undo() -> void
+static readonly Microsoft.Maui.Controls.RichEditor.CursorPositionProperty -> Microsoft.Maui.Controls.BindableProperty!
+static readonly Microsoft.Maui.Controls.RichEditor.DocumentProperty -> Microsoft.Maui.Controls.BindableProperty!
+static readonly Microsoft.Maui.Controls.RichEditor.IsReadOnlyProperty -> Microsoft.Maui.Controls.BindableProperty!
+static readonly Microsoft.Maui.Controls.RichEditor.SelectionLengthProperty -> Microsoft.Maui.Controls.BindableProperty!
+static readonly Microsoft.Maui.Controls.RichEditor.TypingStyleProperty -> Microsoft.Maui.Controls.BindableProperty!

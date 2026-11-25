@@ -86,6 +86,8 @@
     <MicrosoftGraphicsWin2DPackageVersion>1.4.0</MicrosoftGraphicsWin2DPackageVersion>
     <MicrosoftWindowsWebView2PackageVersion>1.0.4258.31</MicrosoftWindowsWebView2PackageVersion>
     <!-- Everything else -->
+    <MarkdigPackageVersion>1.6.0</MarkdigPackageVersion>
+    <AngleSharpPackageVersion>1.10.4</AngleSharpPackageVersion>
     <MicrosoftAspNetCoreAuthorizationPackageVersion>11.0.0</MicrosoftAspNetCoreAuthorizationPackageVersion>
     <MicrosoftAspNetCoreAuthenticationFacebookPackageVersion>11.0.0</MicrosoftAspNetCoreAuthenticationFacebookPackageVersion>
     <MicrosoftAspNetCoreAuthenticationGooglePackageVersion>11.0.0</MicrosoftAspNetCoreAuthenticationGooglePackageVersion>

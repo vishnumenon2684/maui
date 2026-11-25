@@ -321,7 +321,7 @@ function Get-XHarnessTestResultSnapshot {
     }
 
     foreach ($file in @(Get-ChildItem -Path $OutputDirectory -File -Recurse -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -ieq $ResultFileName })) {
+            Where-Object { $_.Name -ilike $ResultFileName })) {
         $snapshot[$file.FullName] = "$($file.Length):$($file.LastWriteTimeUtc.Ticks)"
     }
 
@@ -341,7 +341,7 @@ function Get-FreshXHarnessTestResultFiles {
 
     $freshFiles = [System.Collections.Generic.List[string]]::new()
     foreach ($file in @(Get-ChildItem -Path $OutputDirectory -File -Recurse -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -ieq $ResultFileName })) {
+            Where-Object { $_.Name -ilike $ResultFileName })) {
         $fingerprint = "$($file.Length):$($file.LastWriteTimeUtc.Ticks)"
         if (-not $BeforeSnapshot.ContainsKey($file.FullName) -or $BeforeSnapshot[$file.FullName] -ne $fingerprint) {
             $freshFiles.Add($file.FullName)
@@ -1396,6 +1396,8 @@ try {
                 # Give the Android runner a trusted per-invocation filename so a stale
                 # device-side result from an earlier run cannot satisfy this run.
                 $xharnessResultFileName = "testResults-$([guid]::NewGuid().ToString('N')).xml"
+            } else {
+                $xharnessResultFileName = "xunit-test-*.xml"
             }
         }
         
@@ -1514,8 +1516,7 @@ try {
             $testExitCode = if (($script:XHarnessDeviceTestSummary.Failed + $script:XHarnessDeviceTestSummary.Errors) -eq 0) { 0 } else { 1 }
 
             if ($rawXHarnessExitCode -ne 0 -and $testExitCode -eq 0) {
-                # The MAUI runner writes/copies testResults.xml only after runner.Run()
-                # completes. A fresh, isolated XML file therefore provides stronger
+                # Complete, fresh, isolated XML provides stronger
                 # target-test evidence than XHarness cleanup/teardown exit codes.
                 Write-Warning "XHarness exited with code $rawXHarnessExitCode after the scoped target tests completed successfully; using the verified target-test result."
             }

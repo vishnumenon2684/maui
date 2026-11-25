@@ -61,6 +61,7 @@ public static partial class AppHostBuilderExtensions
 
 	internal static IMauiHandlersCollection AddControlsHandlers(this IMauiHandlersCollection handlersCollection)
 	{
+		handlersCollection.AddHandler<RichEditor>(static _ => new RichEditorHandler());
 #if IOS || MACCATALYST
 		handlersCollection.AddHandler<CollectionView>(static _ => new CollectionViewHandler2());
 		handlersCollection.AddHandler<CarouselView>(static _ => new CarouselViewHandler2());
