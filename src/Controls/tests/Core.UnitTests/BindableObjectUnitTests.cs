@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Reflection;
 using Microsoft.Maui.Controls.Internals;
 using Xunit;
 using Xunit.Sdk;
@@ -75,6 +76,25 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 
 	public class BindableObjectUnitTests : BaseTestFixture
 	{
+		sealed class ThrowingTextViewModel : MockViewModel
+		{
+			public ThrowingTextViewModel() : base("initial")
+			{
+			}
+
+			public override string Text
+			{
+				get => base.Text;
+				set
+				{
+					if (value == "throws")
+						throw new InvalidOperationException("The source setter failed.");
+
+					base.Text = value;
+				}
+			}
+		}
+
 		[Fact]
 		public void TriggerSpecificityIsNotAllocatedWithoutTriggers()
 		{
@@ -351,6 +371,70 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			{
 				throw new XunitException("The PropertyChanged event was not fired.");
 			}
+		}
+
+		[Fact]
+		public void PropertyChangedExceptionDoesNotPreventLaterWriteToSameProperty()
+		{
+			var mock = new MockBindable();
+			mock.PropertyChanged += (_, e) =>
+			{
+				if (e.PropertyName == nameof(MockBindable.Text) && mock.Text == "throws")
+					throw new InvalidOperationException("The PropertyChanged handler failed.");
+			};
+
+			Assert.Throws<InvalidOperationException>(() => { mock.Text = "throws"; });
+
+			mock.Text = "after";
+
+			Assert.Equal("after", mock.Text);
+		}
+
+		[Fact]
+		public void PropertyChangedExceptionDiscardsQueuedWrite()
+		{
+			var mock = new MockBindable();
+			bool queuedWriteNotified = false;
+			mock.PropertyChanged += (_, e) =>
+			{
+				if (e.PropertyName != nameof(MockBindable.Text))
+					return;
+
+				if (mock.Text == "queued")
+					queuedWriteNotified = true;
+
+				if (mock.Text == "throws")
+				{
+					mock.Text = "queued";
+					throw new InvalidOperationException("The PropertyChanged handler failed.");
+				}
+			};
+
+			Assert.Throws<InvalidOperationException>(() => { mock.Text = "throws"; });
+
+			mock.Text = "after";
+
+			Assert.Equal("after", mock.Text);
+			Assert.False(queuedWriteNotified);
+		}
+
+		[Fact]
+		public void TwoWaySourceSetterExceptionDoesNotPreventWriteBackForAnotherProperty()
+		{
+			var mock = new MockBindable();
+			var vm = new ThrowingTextViewModel();
+			var otherProperty = BindableProperty.Create("Other", typeof(bool), typeof(MockBindable), false);
+			mock.SetBinding(MockBindable.TextProperty, new Binding(nameof(MockViewModel.Text), BindingMode.TwoWay));
+			mock.SetBinding(otherProperty, new Binding(nameof(MockViewModel.Boolean), BindingMode.TwoWay));
+			mock.BindingContext = vm;
+			Assert.Equal("initial", mock.Text);
+
+			var exception = Assert.Throws<TargetInvocationException>(() => { mock.Text = "throws"; });
+			Assert.IsType<InvalidOperationException>(exception.InnerException);
+
+			mock.SetValue(otherProperty, true);
+
+			Assert.True(vm.Boolean);
 		}
 
 		[Fact]
