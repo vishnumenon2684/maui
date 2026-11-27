@@ -485,5 +485,302 @@ namespace Microsoft.Maui.DeviceTests
 				Assert.True(page1Appeared, "Tab1 content should have appeared after switching back to Tab1");
 			});
 		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public async Task TabSwitchDoesNotDisconnectContentThatDisconnectsOnUnloaded(bool firstTabWrappedInNavigationPage)
+		{
+			SetupBuilder(builder => builder.ConfigureMauiHandlers(handlers =>
+				handlers.AddHandler<DisconnectOnUnloadedView, DisconnectOnUnloadedHandler>()));
+
+			var disconnectingView = new DisconnectOnUnloadedView();
+			var firstTabContentPage = new ContentPage { Title = "Tab 1", Content = disconnectingView };
+			Page firstTab = firstTabWrappedInNavigationPage
+				? new NavigationPage(firstTabContentPage) { Title = "Tab 1" }
+				: firstTabContentPage;
+			var secondTab = new ContentPage { Title = "Tab 2", Content = new Label { Text = "Tab 2 Content" } };
+			var tabbedPage = CreateBasicTabbedPage(pages: new[] { firstTab, secondTab });
+			var expectedCurrentContent = firstTabWrappedInNavigationPage
+				? ((NavigationPage)firstTab).CurrentPage
+				: firstTab;
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(tabbedPage), async handler =>
+			{
+				await OnNavigatedToAsync(expectedCurrentContent);
+				await OnLoadedAsync(disconnectingView);
+				Assert.NotNull(disconnectingView.Handler);
+				Assert.Equal(0, disconnectingView.UnloadedCount);
+				var contentHandler = disconnectingView.Handler;
+				var nativeContent = (UIView)contentHandler.PlatformView;
+
+				for (var cycle = 0; cycle < 3; cycle++)
+				{
+					tabbedPage.CurrentPage = secondTab;
+					await OnNavigatedToAsync(secondTab);
+					await AssertEventually(() => nativeContent.Window is null);
+					await Task.Delay(100);
+					Assert.Equal(0, disconnectingView.UnloadedCount);
+					Assert.Same(contentHandler, disconnectingView.Handler);
+					Assert.Same(disconnectingView, contentHandler.VirtualView);
+
+					var lateLoadedCount = 0;
+					EventHandler lateLoaded = (_, _) => lateLoadedCount++;
+					disconnectingView.Loaded += lateLoaded;
+					Assert.Equal(1, lateLoadedCount);
+					disconnectingView.Loaded -= lateLoaded;
+
+					tabbedPage.CurrentPage = firstTab;
+					await OnNavigatedToAsync(expectedCurrentContent);
+					await OnLoadedAsync(disconnectingView);
+					Assert.Same(contentHandler, disconnectingView.Handler);
+					Assert.Equal(0, disconnectingView.UnloadedCount);
+					Assert.Equal(1, disconnectingView.LoadedCount);
+				}
+			});
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public async Task InactiveNavigationTabPushAndPopUnloadContent(bool animated)
+		{
+			SetupBuilder(builder => builder.ConfigureMauiHandlers(handlers =>
+				handlers.AddHandler<DisconnectOnUnloadedView, DisconnectOnUnloadedHandler>()));
+			var firstContent = new DisconnectOnUnloadedView();
+			var firstPage = new ContentPage { Title = "First", Content = firstContent };
+			var navigation = new NavigationPage(firstPage) { Title = "Navigation" };
+			var otherTab = new ContentPage { Title = "Other" };
+			var tabs = CreateBasicTabbedPage(pages: new Page[] { navigation, otherTab });
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(tabs), async handler =>
+			{
+				await OnLoadedAsync(firstContent);
+				var firstNativeContent = (UIView)firstContent.Handler.PlatformView;
+				tabs.CurrentPage = otherTab;
+				await OnNavigatedToAsync(otherTab);
+				await AssertEventually(() => firstNativeContent.Window is null);
+				await Task.Delay(100);
+				Assert.Equal(0, firstContent.UnloadedCount);
+
+				var secondContent = new DisconnectOnUnloadedView();
+				var secondPage = new ContentPage { Title = "Pushed", Content = secondContent };
+				var push = navigation.PushAsync(secondPage, animated);
+				await AssertEventually(() => firstContent.UnloadedCount == 1,
+					message: "Inactive navigation push must unload the previous content");
+				Assert.Same(otherTab, tabs.CurrentPage);
+				Assert.Contains(firstPage, navigation.Navigation.NavigationStack);
+				Assert.Same(navigation, firstPage.Parent);
+				Assert.Null(firstContent.Handler);
+				Assert.Equal(0, secondContent.LoadedCount);
+				var firstReference = new WeakReference(firstContent);
+				var replacementContent = new DisconnectOnUnloadedView();
+				firstPage.Content = replacementContent;
+				firstContent = null;
+				await AssertionExtensions.WaitForGC(firstReference);
+				GC.KeepAlive(navigation);
+
+				tabs.CurrentPage = navigation;
+				await push;
+				await OnLoadedAsync(secondContent);
+				var secondNativeContent = (UIView)secondContent.Handler.PlatformView;
+				tabs.CurrentPage = otherTab;
+				await OnNavigatedToAsync(otherTab);
+				await AssertEventually(() => secondNativeContent.Window is null);
+				await Task.Delay(100);
+				Assert.Equal(0, secondContent.UnloadedCount);
+
+				var pop = navigation.PopAsync(animated);
+				await Task.Delay(100);
+				// The renderer defers its logical pop until UIKit completes the transition.
+				if (navigation.CurrentPage == firstPage)
+				{
+					await AssertEventually(() => secondContent.UnloadedCount == 1,
+						message: "Inactive navigation pop must unload the removed content");
+				}
+				else
+				{
+					Assert.Same(secondPage, navigation.CurrentPage);
+					Assert.Equal(0, secondContent.UnloadedCount);
+				}
+				Assert.Same(otherTab, tabs.CurrentPage);
+				tabs.CurrentPage = navigation;
+				Assert.Same(secondPage, await pop);
+				await AssertEventually(() => secondContent.UnloadedCount == 1,
+					message: "Completed navigation pop must unload the removed content");
+				Assert.Null(secondContent.Handler);
+				var reference = new WeakReference(secondContent);
+				secondPage.Content = null;
+				secondContent = null;
+				await AssertionExtensions.WaitForGC(reference);
+				GC.KeepAlive(navigation);
+
+				await OnLoadedAsync(replacementContent);
+				Assert.Equal(1, replacementContent.LoadedCount);
+				tabs.CurrentPage = otherTab;
+				await OnNavigatedToAsync(otherTab);
+				await Task.Delay(100);
+				Assert.Equal(0, replacementContent.UnloadedCount);
+				firstPage.Content = null;
+				await AssertEventually(() => replacementContent.UnloadedCount == 1);
+				Assert.Null(replacementContent.Handler);
+			});
+		}
+
+		[Theory]
+		[InlineData(false, 0)]
+		[InlineData(true, 0)]
+		[InlineData(false, 1)]
+		[InlineData(true, 1)]
+		[InlineData(false, 2)]
+		[InlineData(true, 2)]
+		[InlineData(false, 3)]
+		[InlineData(true, 3)]
+		public async Task InactiveTabContentUnloadsOnRemoval(bool wrappedInNavigationPage, int removal)
+		{
+			SetupBuilder(builder => builder.ConfigureMauiHandlers(handlers =>
+				handlers.AddHandler<DisconnectOnUnloadedView, DisconnectOnUnloadedHandler>()));
+			var content = new DisconnectOnUnloadedView();
+			var contentPage = new ContentPage { Title = "First", Content = content };
+			Page firstTab = wrappedInNavigationPage
+				? new NavigationPage(contentPage) { Title = "First" }
+				: contentPage;
+			var secondContent = new ContentPage { Title = "Second" };
+			var thirdContent = new ContentPage { Title = "Third" };
+			Page secondTab = wrappedInNavigationPage
+				? new NavigationPage(secondContent) { Title = "Second" }
+				: secondContent;
+			Page thirdTab = wrappedInNavigationPage
+				? new NavigationPage(thirdContent) { Title = "Third" }
+				: thirdContent;
+			var tabs = CreateBasicTabbedPage(pages: new[] { firstTab, secondTab, thirdTab });
+			var window = new Window(tabs);
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(window, async handler =>
+			{
+				await OnLoadedAsync(content);
+				var nativeContent = (UIView)content.Handler.PlatformView;
+				tabs.CurrentPage = secondTab;
+				await OnNavigatedToAsync(secondContent);
+				await AssertEventually(() => nativeContent.Window is null);
+				await Task.Delay(100);
+				Assert.Equal(0, content.UnloadedCount);
+				tabs.CurrentPage = thirdTab;
+				await OnNavigatedToAsync(thirdContent);
+				await Task.Delay(100);
+				Assert.Equal(0, content.UnloadedCount);
+
+				switch (removal)
+				{
+					case 0:
+						contentPage.Content = null;
+						break;
+					case 1:
+						tabs.Children.Remove(firstTab);
+						break;
+					case 2:
+						window.Page = new ContentPage();
+						break;
+					case 3:
+						((UIView)tabs.Handler.PlatformView).RemoveFromSuperview();
+						break;
+				}
+
+				await AssertEventually(() => content.UnloadedCount == 1);
+				if (removal != 3)
+					Assert.Null(content.Window);
+				Assert.Null(content.Handler);
+			});
+		}
+
+		[Fact]
+		public async Task NativeHostedContentStillLoadsAndUnloads()
+		{
+			SetupBuilder(builder => builder.ConfigureMauiHandlers(handlers =>
+				handlers.AddHandler<DisconnectOnUnloadedView, DisconnectOnUnloadedHandler>()));
+			var content = new DisconnectOnUnloadedView();
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(new ContentPage()), async handler =>
+			{
+				var nativeContent = content.ToPlatform(MauiContext);
+				Assert.Null(content.Window);
+				handler.PlatformView.AddSubview(nativeContent);
+				await OnLoadedAsync(content);
+				Assert.Equal(1, content.LoadedCount);
+				Assert.Equal(0, content.UnloadedCount);
+
+				nativeContent.RemoveFromSuperview();
+				await AssertEventually(() => content.UnloadedCount == 1);
+				Assert.Null(content.Handler);
+			});
+		}
+
+		[Fact]
+		public async Task RemovedInactiveTabContentDoesNotLeak()
+		{
+			SetupBuilder(builder => builder.ConfigureMauiHandlers(handlers =>
+				handlers.AddHandler<DisconnectOnUnloadedView, DisconnectOnUnloadedHandler>()));
+			var firstTab = new ContentPage { Title = "First" };
+			var secondTab = new ContentPage { Title = "Second" };
+			var tabs = CreateBasicTabbedPage(pages: new[] { firstTab, secondTab });
+			var reference = new WeakReference(null);
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(tabs), async handler =>
+			{
+				var content = new DisconnectOnUnloadedView();
+				firstTab.Content = content;
+				await OnLoadedAsync(content);
+				reference.Target = content;
+				tabs.CurrentPage = secondTab;
+				await OnNavigatedToAsync(secondTab);
+				await Task.Delay(100);
+				Assert.Equal(0, content.UnloadedCount);
+
+				firstTab.Content = null;
+				await AssertEventually(() => content.UnloadedCount == 1);
+				content = null;
+				await AssertionExtensions.WaitForGC(reference);
+				GC.KeepAlive(tabs);
+			});
+		}
+
+		sealed class DisconnectOnUnloadedHandler : ContentViewHandler
+		{
+			UITapGestureRecognizer _gesture;
+
+			protected override void ConnectHandler(Microsoft.Maui.Platform.ContentView platformView)
+			{
+				base.ConnectHandler(platformView);
+				// Match custom controls whose native gesture target retains their handler.
+				_gesture = new UITapGestureRecognizer(() => GC.KeepAlive(VirtualView));
+				platformView.AddGestureRecognizer(_gesture);
+			}
+
+			protected override void DisconnectHandler(Microsoft.Maui.Platform.ContentView platformView)
+			{
+				platformView.RemoveGestureRecognizer(_gesture);
+				_gesture.Dispose();
+				_gesture = null;
+				base.DisconnectHandler(platformView);
+			}
+		}
+
+		sealed class DisconnectOnUnloadedView : Microsoft.Maui.Controls.ContentView
+		{
+			public int UnloadedCount { get; private set; }
+			public int LoadedCount { get; private set; }
+
+			public DisconnectOnUnloadedView()
+			{
+				Loaded += (_, _) => LoadedCount++;
+				Unloaded += OnUnloaded;
+			}
+
+			void OnUnloaded(object sender, EventArgs e)
+			{
+				UnloadedCount++;
+				Handler?.DisconnectHandler();
+			}
+		}
 	}
 }
